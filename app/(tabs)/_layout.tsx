@@ -21,18 +21,18 @@ export default function TabLayout() {
             position: 'absolute',
             bottom: 18,
             marginHorizontal: 18,
-            height: 60, // More height to fit Arabic labels properly
+            height: 60,
             borderRadius: 20,
             shadowColor: '#000',
             shadowOpacity: 0.1,
             shadowOffset: { width: 0, height: 4 },
-          
           },
         }}
       >
         <Tabs.Screen
           name="settings"
           options={{
+            title: 'الإعدادات',
             tabBarIcon: ({ focused }) => (
               <View style={styles.iconWrapper}>
                 <FontAwesome5 name="cog" size={20} color={focused ? 'black' : 'gray'} />
@@ -44,6 +44,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="reminders"
           options={{
+            title: 'التنبيهات',
             tabBarIcon: ({ focused }) => (
               <View style={styles.iconWrapper}>
                 <FontAwesome5 name="bell" size={20} color={focused ? 'black' : 'gray'} />
@@ -55,6 +56,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="empty"
           options={{
+            title: 'إضافة',
             tabBarIcon: () => (
               <TouchableOpacity activeOpacity={0.8}>
                 <View style={styles.actionButton}>
@@ -70,6 +72,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="mydocuments"
           options={{
+            title: 'المستندات',
             tabBarIcon: ({ focused }) => (
               <View style={styles.iconWrapper}>
                 <FontAwesome5 name="file-alt" size={20} color={focused ? 'black' : 'gray'} />
@@ -81,6 +84,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="index"
           options={{
+            title: 'الرئيسية',
             tabBarIcon: ({ focused }) => (
               <View style={styles.iconWrapper}>
                 <FontAwesome5 name="home" size={20} color={focused ? 'black' : 'gray'} />
@@ -99,9 +103,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 20,
-    // backgroundColor: 'red',
-    height:30,
-    width:60
+    height: 30,
+    width: 60,
   },
   label: {
     fontSize: 11,
