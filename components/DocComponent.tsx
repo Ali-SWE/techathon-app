@@ -7,7 +7,7 @@ type Props = {
   name: string
   description: string
   expiryDate: string
-  iconPath: string
+  iconPath: any
 }
 
 export function DocComponent({id, name,description, expiryDate, iconPath }: Props){
@@ -26,8 +26,10 @@ export function DocComponent({id, name,description, expiryDate, iconPath }: Prop
         <Text style={styles.subtitle}>{expiryDate}</Text>
       </View>
       <TouchableOpacity style={styles.menuButton}>
-        {/* <FontAwesome5 name="ellipsis" size={20} /> */}
-      </TouchableOpacity>
+          <View style={styles.menuDot} />
+          <View style={styles.menuDot} />
+          <View style={styles.menuDot} />
+        </TouchableOpacity>
     </View>
   );
 }
@@ -77,5 +79,16 @@ const styles = StyleSheet.create({
   },
   menuButton: {
     padding: 4,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 20,
+    gap: 3
+  },
+  menuDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: '#9CA3AF'
   },
 });

@@ -5,9 +5,36 @@ import { categories } from '@/utils/constant';
 
 
 export default function MyDocuments() {
-  const documents: Doc[] = [] // this will be taken from the storage of the app in the device 
-  documents.push({id: "1", name: "تأمين السيارة", description: "التعاونية", category: "shopping", expiryDate: "11/04/2025"}, {id: "2", name: "test document", description: "this document", category: "wallet", expiryDate: "11/04/2025"} )
-  
+  const documents: Doc[] = [// this will be taken from the storage of the app in the device 
+    {
+      id: "1",
+      name: "تأمين السيارة",
+      description: "التعاونية",
+      category: "shopping",
+      expiryDate: "11/04/2026"
+    },
+    {
+      id: "2",
+      name: "رخصة القيادة",
+      description: "رخصتي",
+      category: "cards",
+      expiryDate: "21/05/2025"
+    }, 
+    {
+      id: "3",
+      name: "test document",
+      description: "this document",
+      category: "wallet",
+      expiryDate: "11/04/2025"
+    },
+    {
+      id: "4",
+      name: "macbook",
+      description: "",
+      category: "electronics",
+      expiryDate: "11/12/2028"
+    }
+  ] 
   
   return (
     <View style={[styles.container, {marginTop: 10}]}>
