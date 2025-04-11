@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, StyleSheet, StatusBar, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import FoldersSection from '../../components/Folder';
 
@@ -8,10 +8,10 @@ const RecentFilesSection: React.FC = () => {
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>آخر الملفات</Text>
         <TouchableOpacity>
           <Text style={styles.showAllText}>اظهار الكل</Text>
         </TouchableOpacity>
+        <Text style={styles.sectionTitle}>آخر الملفات</Text>
       </View>
     </View>
   );
@@ -24,15 +24,9 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       
-      
-
-      <View style={styles.content}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.welcomeTitle}>أهلا هاشم!</Text>
         <View style={styles.header}>
-        <TouchableOpacity>
-          <Ionicons name="menu" size={24} color="#374151" />
-        </TouchableOpacity>
-        <View style={styles.headerRight}>
           <TouchableOpacity>
             <Ionicons name="search" size={24} color="#374151" />
           </TouchableOpacity>
@@ -51,11 +45,9 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </View>
         <FoldersSection isGridView={isGridView} />
-        
         <RecentFilesSection />
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -65,41 +57,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F9FAFB'
   },
-  statusBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: 'white'
-  },
-  timeText: {
-    fontSize: 12,
-    fontWeight: '500'
-  },
-  statusIcons: {
-    flexDirection: 'row',
-    gap: 6
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16
-  },
   content: {
     flex: 1,
-    padding: 16
+    paddingHorizontal: 16
   },
   welcomeTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 24
+    marginBottom: 24,
+    textAlign: 'right'
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingVertical: 16,
+    gap: 16
   },
   viewToggle: {
     flexDirection: 'row',
@@ -121,29 +94,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12
-  },
   sectionTitle: {
     fontSize: 16,
-    color: '#6B7280'
+    color: '#6B7280',
+    textAlign: 'right'
   },
   showAllText: {
     fontSize: 14,
     color: '#3B82F6'
-  },
-  filesPlaceholder: {
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    borderStyle: 'dashed',
-    borderRadius: 8,
-    padding: 32,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  placeholderText: {
-    color: '#6B7280'
   }
 });

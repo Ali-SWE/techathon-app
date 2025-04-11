@@ -54,10 +54,11 @@ const FoldersSection = ({ isGridView }: FoldersSectionProps) => {
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>كل المجلدات</Text>
-        <TouchableOpacity>
+      <TouchableOpacity>
           <Text style={styles.showAllText}>اظهار الكل</Text>
         </TouchableOpacity>
+        <Text style={styles.sectionTitle}>كل المجلدات</Text>
+        
       </View>
       {isGridView ? (
         <View style={styles.folderGridView}>
@@ -106,7 +107,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    color: '#6B7280'
+    color: '#6B7280',
+    textAlign: 'right'
   },
   showAllText: {
     fontSize: 14,
@@ -124,8 +126,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#EBF5FF'
   },
   folderListView: {
-    paddingRight: 16,
-    gap: 12
+    paddingLeft: 16,
+    gap: 12,
+    flexDirection: 'row-reverse'
   },
   folderGridView: {
     flexDirection: 'row',
