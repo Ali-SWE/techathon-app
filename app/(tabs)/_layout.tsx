@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Tabs } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
+import AddButton from '@/components/AddButton';
 
 export default function TabLayout() {
   return (
@@ -54,21 +55,12 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="empty"
-          options={{
-            title: 'إضافة',
-            tabBarIcon: () => (
-              <TouchableOpacity activeOpacity={0.8}>
-                <View style={styles.actionButton}>
-                  <Image
-                    source={require('@/assets/plus.png')}
-                    style={{ width: 22, height: 22, tintColor: 'white' }}
-                  />
-                </View>
-              </TouchableOpacity>
-            ),
-          }}
-        />
+        name="add"
+        options={{
+          title: 'إضافة',
+          tabBarButton: (props) => <AddButton {...props} />,
+        }}
+      />
         <Tabs.Screen
           name="mydocuments"
           options={{
