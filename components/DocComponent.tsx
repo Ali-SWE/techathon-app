@@ -1,13 +1,24 @@
-import { Doc } from '@/types';
-import { View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image} from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
 
 
-export function DocComponent({id, name,description, expiryDate }: Doc){
+type Props = {
+  id: string
+  name: string
+  description: string
+  expiryDate: string
+  iconPath: string
+}
+
+export function DocComponent({id, name,description, expiryDate, iconPath }: Props){
   return (
     <View style={styles.card}>
       <View style={styles.iconContainer}>
         <View style={[styles.iconBackground]}>
-          {/* <Icon name={item.icon} size={24} color="#fff" /> */}
+          <Image
+            source={iconPath}
+            style={{ width: 50, height: 50 }}
+            />
         </View>
       </View>
       <View style={styles.textContainer}>
@@ -15,7 +26,7 @@ export function DocComponent({id, name,description, expiryDate }: Doc){
         <Text style={styles.subtitle}>{expiryDate}</Text>
       </View>
       <TouchableOpacity style={styles.menuButton}>
-        {/* <Icon name="dots-vertical" size={22} color="#333" /> */}
+        {/* <FontAwesome5 name="ellipsis" size={20} /> */}
       </TouchableOpacity>
     </View>
   );
@@ -23,10 +34,10 @@ export function DocComponent({id, name,description, expiryDate }: Doc){
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 16,
+    paddingVertical: 16
   },
   card: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     marginHorizontal: 16,
     marginVertical: 6,
@@ -40,7 +51,8 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   iconContainer: {
-    marginRight: 12,
+    marginRight: 8,
+    marginLeft: 16
   },
   iconBackground: {
     width: 40,
@@ -51,14 +63,17 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     flex: 1,
+    gap: 5
   },
   title: {
     fontWeight: '600',
     fontSize: 16,
+    textAlign: 'right'
   },
   subtitle: {
     color: '#888',
     fontSize: 13,
+    textAlign: 'right'
   },
   menuButton: {
     padding: 4,
