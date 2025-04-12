@@ -1,3 +1,4 @@
+import { useActionSheet } from '@expo/react-native-action-sheet';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -14,6 +15,8 @@ type Props = {
 };
 
 export function DocComponent({ name, description, expiryDate, iconPath, status, size }: Props) {
+  const { showActionSheetWithOptions } = useActionSheet();
+
   const getStatusStyle = (status?: Status) => {
     switch (status) {
       case 'expired':
@@ -42,23 +45,48 @@ export function DocComponent({ name, description, expiryDate, iconPath, status, 
     }
   };
 
+  const handleMenuPress = () => {
+    const options = ['فتح المستند', 'مشاركة', 'حذف', 'إلغاء'];
+    const destructiveButtonIndex = 2;
+    const cancelButtonIndex = 3;
+
+    showActionSheetWithOptions(
+      {
+        options,
+        cancelButtonIndex,
+        destructiveButtonIndex,
+        title: name,
+      },
+      (selectedIndex) => {
+        switch (selectedIndex) {
+          case 0:
+            console.log('فتح');
+            break;
+          case 1:
+            console.log('مشاركة');
+            break;
+          case 2:
+            console.log('حذف');
+            break;
+        }
+      }
+    );
+  };
+
   const statusData = getStatusStyle(status);
 
   return (
     <View style={styles.card}>
-      {/* Three Dots */}
-      <TouchableOpacity style={styles.menuButton}>
+      <TouchableOpacity style={styles.menuButton} onPress={handleMenuPress}>
         <MaterialCommunityIcons name="dots-vertical" size={20} color="#B0B0B0" />
       </TouchableOpacity>
 
-      {/* Icon */}
       <View style={styles.iconContainer}>
         <View style={styles.iconBackground}>
           <Image source={iconPath} style={{ width: 50, height: 50 }} />
         </View>
       </View>
 
-      {/* Info */}
       <View style={styles.textContainer}>
         <Text style={styles.title}>{name}</Text>
         {size && <Text style={styles.sizeText}>{size}</Text>}

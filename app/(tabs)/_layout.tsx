@@ -10,10 +10,11 @@ import {
 import { Tabs } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
 import AddButton from '@/components/AddButton';
+import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 
 export default function TabLayout() {
   return (
-    <>
+    <ActionSheetProvider>
       <Tabs
         screenOptions={{
           tabBarShowLabel: false,
@@ -55,12 +56,12 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-        name="add"
-        options={{
-          title: 'إضافة',
-          tabBarButton: (props) => <AddButton {...props} />,
-        }}
-      />
+          name="add"
+          options={{
+            title: 'إضافة',
+            tabBarButton: (props) => <AddButton {...props} />,
+          }}
+        />
         <Tabs.Screen
           name="mydocuments"
           options={{
@@ -86,7 +87,7 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-    </>
+    </ActionSheetProvider>
   );
 }
 
