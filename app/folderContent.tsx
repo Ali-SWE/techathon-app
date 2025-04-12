@@ -12,13 +12,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { DocComponent } from '@/components/DocComponent';
-
-interface Document {
-  id: string;
-  name: string;
-  size: string;
-  iconPath: string;
-}
+import { Doc } from '@/utils/types';
+import { categories } from '@/utils/constant';
 
 export default function FolderScreen() {
   const router = useRouter();
@@ -27,13 +22,29 @@ export default function FolderScreen() {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   
   // Mock data for folder contents
-  const [documents, setDocuments] = useState<Document[]>([
-    { id: '1', name: 'فاتورة الكهرباء', size: '2.5 MB', iconPath: 'document-text-outline' },
-    { id: '2', name: 'عقد الإيجار', size: '1.8 MB', iconPath: 'document-text-outline' },
+  const [documents, setDocuments] = useState<Doc[]>([
+    { 
+      id: '1', 
+      documentName: 'فاتورة الكهرباء', 
+      description: '',
+      category: 'documents',
+      expiryDate: '',
+      imageBase64: '',
+      size: '2.5 MB'
+    },
+    { 
+      id: '2', 
+      documentName: 'عقد الإيجار', 
+      description: '',
+      category: 'documents',
+      expiryDate: '',
+      imageBase64: '',
+      size: '1.8 MB'
+    },
   ]);
 
   const filteredDocuments = documents.filter(doc => 
-    doc.name.toLowerCase().includes(searchQuery.toLowerCase())
+    doc.documentName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const folder = {
@@ -98,8 +109,8 @@ export default function FolderScreen() {
         renderItem={({ item }) => (
           <DocComponent
             id={item.id}
-            name={item.name}
-            iconPath={item.iconPath}
+            name={item.documentName}
+            iconPath={item.imageBase64}
             size={item.size}
           />
         )}
