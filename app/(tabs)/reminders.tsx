@@ -23,33 +23,15 @@ export default function Reminders() {
   const [documents, setDocuments] = useState<Doc[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const fetchDocuments = async () => {
-    setLoading(true);
-    const data = await loadObject("documents");
-    if (Array.isArray(data)) {
-      setDocuments(data);
-    }
-    setLoading(false);
-  };
-
   useEffect(() => {
+    const fetchDocuments = async () => {
+      setLoading(true);
+      const data = await loadObject('documents');
+      setDocuments(data);
+      setLoading(false);
+    };
     fetchDocuments();
-  }, []);
-
-  const deleteDocument = async (id: string) => {
-    Alert.alert("تأكيد الحذف", "هل تريد حذف هذا التذكير؟", [
-      { text: "إلغاء", style: "cancel" },
-      {
-        text: "حذف",
-        style: "destructive",
-        onPress: async () => {
-          const updated = documents.filter(doc => doc.id !== id);
-          setDocuments(updated); // update UI instantly
-          await saveObject("documents", updated); // persist change
-        },
-      },
-    ]);
-  };
+  }, [documents]);
 
   const getStatus = (expiryDate: string) => {
     const today = new Date();
@@ -64,18 +46,11 @@ export default function Reminders() {
     item.documentName?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (loading) {
-    return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color="#3B82F6" />
-      </View>
-    );
-  }
 
   if (documents.length === 0) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={styles.title}>ما فيه شي ع البال :(</Text>
+      <View style={[styles.container, { marginTop: 10, alignItems: 'center' }]}>
+        <Text style={styles.title}>{"ما في شي ع البال:("}</Text>
       </View>
     );
   }
@@ -131,7 +106,6 @@ export default function Reminders() {
             iconPath={categories[item.category]}
             status={getStatus(item.expiryDate)}
             imageBase64={item.imageBase64}
-            onDelete={() => deleteDocument(item.id)}
           />
         )}
         contentContainerStyle={styles.content}

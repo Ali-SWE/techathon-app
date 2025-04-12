@@ -40,7 +40,7 @@ export default function MyDocumentsScreen() {
   if (documents.length === 0) {
     return (
       <View style={[styles.container, { marginTop: 10, alignItems: 'center' }]}>
-        <Text style={styles.title}>ما فيه شي ع البال :(</Text>
+        <Text style={styles.title}>{"ما في شي ع البال:("}</Text>
       </View>
     );
   }
