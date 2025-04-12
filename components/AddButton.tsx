@@ -11,24 +11,32 @@ import {
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
+import { useRouter } from 'expo-router';
 
 export default function AddButton({}) {
   const [showOptions, setShowOptions] = useState(false);
+  const router = useRouter();
 
   const handlePickFile = async () => {
-    const result = await DocumentPicker.getDocumentAsync({});
+    const result = await DocumentPicker.getDocumentAsync({ copyToCacheDirectory: true });
     if (!result.canceled) {
       Alert.alert('تم رفع الملف', result.assets[0].name);
     }
     setShowOptions(false);
+    if(result.assets){
+      router.push({ pathname: '/form', params: { uri: result.assets[0].uri, mimeType: result.assets[0].mimeType || 'application/pdf', size: result.assets[0].size } });
+    }
   };
 
   const handlePickFromGallery = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images });
+    const result = await ImagePicker.launchImageLibraryAsync({mediaTypes: ImagePicker.MediaTypeOptions.Images });
     if (!result.canceled) {
       Alert.alert('تم اختيار صورة من المعرض');
     }
-    setShowOptions(false);
+    setShowOptions(false)
+    if(result.assets){
+      router.push({ pathname: '/form', params: {uri: result.assets[0].uri, mimeType: undefined, size: result.assets[0].fileSize } });
+    }
   };
 
   const handleScanWithCamera = async () => {
@@ -37,11 +45,14 @@ export default function AddButton({}) {
       Alert.alert('يجب منح صلاحية الكاميرا');
       return;
     }
-    const result = await ImagePicker.launchCameraAsync();
+    const result = await ImagePicker.launchCameraAsync({});
     if (!result.canceled) {
       Alert.alert('تم التقاط صورة');
     }
     setShowOptions(false);
+    if(result.assets){
+      router.push({ pathname: '/form', params: {uri: result.assets[0].uri, mimeType: undefined, size: result.assets[0].fileSize} });
+    }
   };
 
   return (

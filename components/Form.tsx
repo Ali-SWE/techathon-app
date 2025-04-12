@@ -1,35 +1,72 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal, Image, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { getBase64FromUri, loadObject } from '@/utils/storage';
+import { saveObject } from '@/utils/storage';
+import { Doc } from '@/utils/types';
+import { useRouter } from 'expo-router';
 
-const Form = () => {
+const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string | string[], size:  string | string[]}) => {
+  const router = useRouter();
   const [formData, setFormData] = useState({
+    id: '',
     documentName: '',
     description: '',
     expiryDate: '',
     reminder: 'تذكير قبل',
-    category: 'اختر الفئة'
+    category: 'wallet',
+    imageBase64: '',
+    size: size + ""
   });
 
   const [showReminderModal, setShowReminderModal] = useState(false);
 
   const reminderOptions = [
-    { label: 'بدون تذكير', value: 'none' },
-    { label: 'قبل يوم واحد', value: '1_day' },
-    { label: 'قبل يومين', value: '2_days' },
-    { label: 'قبل 3 أيام', value: '3_days' },
-    { label: 'قبل 4 أيام', value: '4_days' },
-    { label: 'قبل 5 أيام', value: '5_days' },
-    { label: 'قبل 6 أيام', value: '6_days' },
-    { label: 'قبل أسبوع', value: '7_days' },
+    { label: 'بدون تذكير', value: '0' },
+    { label: 'قبل يوم واحد', value: '1' },
+    { label: 'قبل يومين', value: '2' },
+    { label: 'قبل 3 أيام', value: '3' },
+    { label: 'قبل 4 أيام', value: '4' },
+    { label: 'قبل 5 أيام', value: '5' },
+    { label: 'قبل 6 أيام', value: '6' },
+    { label: 'قبل أسبوع', value: '7' },
   ];
 
-  const handleSubmit = () => {
+
+  const [loading, setLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchImageBase64 = async () => {
+      setLoading(true); // Start loading state
+      const base64 = await getBase64FromUri(uri+""); // Convert to base64
+      setFormData({ ...formData, imageBase64: base64+"" }); // Save base64 result 
+      setLoading(false); // End loading state
+    };
+
+    if (uri) {
+      fetchImageBase64(); // Start the base64 conversion when URI is available
+    }
+  }, []);
+
+
+  const handleSubmit = async () => {
     console.log('Form submitted:', formData);
+    saveObject("documents", formData)
+    const result: Doc[] = await loadObject("documents")
   };
 
   return (
     <View style={styles.container}>
+      {/* Show loading indicator while converting the image */}
+      {loading && <ActivityIndicator size="large" color="#0000ff" />}
+
+      {/* Optionally display the Base64 image once it's ready */}
+      {formData.imageBase64 && !loading && (
+        <Image
+          source={{ uri: `data:image/jpeg;base64,${formData.imageBase64}` }}
+          style={{ width: 100, height: 100 }}
+        />
+      )}
       <View style={styles.formGroup}>
         <TextInput
           style={[styles.input, styles.rtlInput]}
@@ -106,7 +143,7 @@ const Form = () => {
                 key={option.value}
                 style={styles.modalOption}
                 onPress={() => {
-                  setFormData({ ...formData, reminder: option.label });
+                  setFormData({ ...formData, reminder: option.value });
                   setShowReminderModal(false);
                 }}
               >

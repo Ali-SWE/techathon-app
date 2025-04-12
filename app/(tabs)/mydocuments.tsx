@@ -1,40 +1,25 @@
 import { StyleSheet, View, FlatList } from 'react-native';
 import { DocComponent } from '@/components/DocComponent';
+import { useEffect, useState } from 'react';
 import { Doc } from '@/utils/types';
 import { categories } from '@/utils/constant';
+import { loadObject, bytesToMB } from '@/utils/storage';
+
 
 export default function MyDocuments() {
-  const documents: Doc[] = [
-    {
-      id: "1",
-      name: "تأمين السيارة",
-      description: "التعاونية",
-      category: "shopping",
-      expiryDate: "11/04/2026"
-    },
-    {
-      id: "2",
-      name: "رخصة القيادة",
-      description: "رخصتي",
-      category: "cards",
-      expiryDate: "21/05/2025"
-    },
-    {
-      id: "3",
-      name: "test document",
-      description: "this document",
-      category: "wallet",
-      expiryDate: "11/04/2025"
-    },
-    {
-      id: "4",
-      name: "macbook",
-      description: "",
-      category: "electronics",
-      expiryDate: "11/12/2028"
-    }
-  ];
-
+  const [documents, setDocuments] = useState<Doc[]>([])
+  const [loading, setLoading] = useState<boolean>(false);
+  
+  useEffect(() => {
+      const fetchDocuments = async () => {
+        setLoading(true); // Start loading state
+        const data = await loadObject("documents")
+        setDocuments(data); 
+        setLoading(false); // End loading state
+      };
+      fetchDocuments();
+    }, []);
+  
   return (
     <View style={[styles.container, { marginTop: 10 }]}>
       <FlatList
@@ -43,10 +28,10 @@ export default function MyDocuments() {
         renderItem={({ item }) => (
           <DocComponent
             id={item.id}
-            name={item.name}
+            name={item.documentName}
             description={item.description}
             iconPath={categories[item.category]}
-            size="2.1 MB"
+            size={bytesToMB(item.size) + " MB"}
           />
         )}
         contentContainerStyle={styles.container}
