@@ -60,7 +60,6 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
   }, []);
 
   const handleSubmit = async () => {
-    console.log('Form submitted:', formData);
     saveObject("documents", formData);
     const result: Doc[] = await loadObject("documents");
     // router.replace('/index');

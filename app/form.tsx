@@ -8,7 +8,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function FormScreen() {
   const { uri, mimeType, size } = useLocalSearchParams();
-  console.log(size)
 
   return (
     <SafeAreaView style={{ flex: 1 }}>

@@ -57,9 +57,9 @@ export function DocComponent({ id, name, description, expiryDate, iconPath, stat
   }
 
   const handleMenuPress = () => {
-    const options = ['فتح المستند', 'مشاركة', 'حذف', 'إلغاء'];
-    const destructiveButtonIndex = 2;
-    const cancelButtonIndex = 3;
+    const options = ['فتح المستند', 'حذف', 'إلغاء'];
+    const destructiveButtonIndex = 1;
+    const cancelButtonIndex = 2;
 
     showActionSheetWithOptions(
       {
@@ -74,10 +74,6 @@ export function DocComponent({ id, name, description, expiryDate, iconPath, stat
             setShowImageModal(true)
             break;
           case 1:
-            console.log('مشاركة');
-            break;
-          case 2:
-            // console.log("delete")
             handleDelete(id)
             break;
         }

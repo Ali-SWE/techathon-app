@@ -14,21 +14,24 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { DocComponent } from '@/components/DocComponent';
 import FoldersSection from '@/components/Folder';
+import { loadObject, bytesToMB } from '@/utils/storage';
+import { Doc } from '@/utils/types';
+import { categories } from '@/utils/constant';
 
-const recentDocs = [
-  {
-    id: 'r1',
-    name: 'فاتورة الماء',
-    size: '450 KB',
-    iconPath: require('@/assets/icon_wallet.png'),
-  },
-  {
-    id: 'r2',
-    name: 'تقرير المدرسة',
-    size: '1.2 MB',
-    iconPath: require('@/assets/icon_cards.png'),
-  },
-];
+// const recentDocs = [
+//   {
+//     id: 'r1',
+//     name: 'فاتورة الماء',
+//     size: '450 KB',
+//     iconPath: require('@/assets/icon_wallet.png'),
+//   },
+//   {
+//     id: 'r2',
+//     name: 'تقرير المدرسة',
+//     size: '1.2 MB',
+//     iconPath: require('@/assets/icon_cards.png'),
+//   },
+// ];
 
 const folders: Array<{ id: number; title: string; date: string; filesCount: number; color: 'orange' | 'blue' }> = [
   { id: 1, title: 'اغراض المنزل', date: 'April 19, 2025', filesCount: 10, color: 'orange' },
@@ -43,14 +46,6 @@ export default function HomeScreen() {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const router = useRouter();
 
-  const filteredDocs = recentDocs.filter(doc => 
-    doc.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const filteredFolders = folders.filter(folder => 
-    folder.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   useEffect(() => {
     const prepare = async () => {
       await new Promise(resolve => setTimeout(resolve, 3000));
@@ -58,6 +53,34 @@ export default function HomeScreen() {
     };
     prepare();
   }, []);
+    const [documents, setDocuments] = useState<Doc[]>([])
+    const [loading, setLoading] = useState<boolean>(false);
+    
+    useEffect(() => {
+        const fetchDocuments = async () => {
+          setLoading(true); // Start loading state
+          const data = await loadObject("documents")
+          setDocuments(data); 
+          setLoading(false); // End loading state
+        };
+        fetchDocuments();
+      }, [documents]);
+      
+      if(documents.length == 0){
+        return (
+          <View style={[styles.container, { marginTop: 10, alignItems: 'center' }]}>
+            <Text style={styles.title}>{"ما فيه شي ع البال:("}</Text>
+        </View>
+        )
+      }
+
+  const filteredDocs = documents.filter(doc => 
+    doc.documentName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredFolders = folders.filter(folder => 
+    folder.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -139,9 +162,12 @@ export default function HomeScreen() {
         renderItem={({ item }) => (
           <DocComponent
             id={item.id}
-            name={item.name}
-            iconPath={item.iconPath}
-            size={item.size}
+            name={item.documentName}
+            description={item.description}
+            iconPath={categories[item.category]}
+            size={bytesToMB(item.size) + " MB"}
+            imageBase64={item.imageBase64}
+            mimeType={item.mimeType}
           />
         )}
         contentContainerStyle={styles.content}
@@ -158,6 +184,11 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
     paddingBottom: 30,
+  },
+  title: {
+    fontWeight: '600',
+    fontSize: 16,
+    textAlign: 'right',
   },
   header: {
     flexDirection: 'row-reverse',
