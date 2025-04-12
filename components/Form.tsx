@@ -5,9 +5,12 @@ import { getBase64FromUri, loadObject } from '@/utils/storage';
 import { saveObject } from '@/utils/storage';
 import { Doc } from '@/utils/types';
 import { useRouter } from 'expo-router';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import moment from 'moment';
 
-const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string | string[], size:  string | string[]}) => {
+const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string | string[], size: string | string[]}) => {
   const router = useRouter();
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [formData, setFormData] = useState({
     id: '',
     documentName: '',
@@ -32,41 +35,56 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
     { label: 'قبل أسبوع', value: '7' },
   ];
 
+  const categoryOptions = [
+    { label: 'محفظة', value: 'wallet' },
+    { label: 'بطاقات', value: 'cards' },
+    { label: 'تسوق', value: 'shopping' },
+    { label: 'وثائق', value: 'documents' },
+  ];
 
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchImageBase64 = async () => {
-      setLoading(true); // Start loading state
-      const base64 = await getBase64FromUri(uri+""); // Convert to base64
-      setFormData({ ...formData, imageBase64: base64+"" }); // Save base64 result 
-      setLoading(false); // End loading state
+      setLoading(true);
+      const base64 = await getBase64FromUri(uri+"");
+      setFormData({ ...formData, imageBase64: base64+"" });
+      setLoading(false);
     };
 
     if (uri) {
-      fetchImageBase64(); // Start the base64 conversion when URI is available
+      fetchImageBase64();
     }
   }, []);
 
-
   const handleSubmit = async () => {
     console.log('Form submitted:', formData);
-    saveObject("documents", formData)
-    const result: Doc[] = await loadObject("documents")
+    saveObject("documents", formData);
+    const result: Doc[] = await loadObject("documents");
+    router.replace('/index');
+  };
+  
+  const handleDateConfirm = (date: Date) => {
+    setFormData({ ...formData, expiryDate: moment(date).format('DD/MM/YYYY') });
+    setDatePickerVisibility(false);
+  };
+
+  const handleReminderSelect = (option: {label: string, value: string}) => {
+    setFormData({ ...formData, reminder: option.value });
+    setShowReminderModal(false);
+  };
+
+  const handleCategorySelect = (category: { label: string, value: string }) => {
+    setFormData({ ...formData, category: category.value });
   };
 
   return (
     <View style={styles.container}>
-      {/* Show loading indicator while converting the image */}
       {loading && <ActivityIndicator size="large" color="#0000ff" />}
-
-      {/* Optionally display the Base64 image once it's ready */}
       {formData.imageBase64 && !loading && (
-        <Image
-          source={{ uri: `data:image/jpeg;base64,${formData.imageBase64}` }}
-          style={{ width: 100, height: 100 }}
-        />
+        <Image source={{ uri: `data:image/jpeg;base64,${formData.imageBase64}` }} style={{ width: 100, height: 100 }} />
       )}
+
       <View style={styles.formGroup}>
         <TextInput
           style={[styles.input, styles.rtlInput]}
@@ -96,28 +114,38 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
 
       <View style={styles.formGroup}>
         <Text style={styles.label}>تاريخ الانتهاء</Text>
-        <View style={styles.dateContainer}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <TouchableOpacity 
             style={styles.dropdownButton}
-            onPress={() => setShowReminderModal(true)}
+            onPress={() => setShowReminderModal(true)} // Show the reminder modal
           >
             <Ionicons name="chevron-down" size={20} color="#6B7280" />
             <Text style={styles.dropdownButtonText}>{formData.reminder}</Text>
           </TouchableOpacity>
-          <TextInput
-            style={[styles.input, styles.dateInput, styles.rtlInput]}
-            placeholder="DD/MM/YY"
-            value={formData.expiryDate}
-            onChangeText={(text) => setFormData({ ...formData, expiryDate: text })}
-            textAlign="right"
-          />
+          
+          <TouchableOpacity 
+            style={styles.dropdownButton}
+            onPress={() => setDatePickerVisibility(true)} // Show the date picker modal
+          >
+            <Ionicons name="chevron-down" size={20} color="#6B7280" />
+            <Text style={styles.dropdownButtonText}>{formData.expiryDate || 'اختر التاريخ'}</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
+      {/* Date Picker Modal */}
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible}
+        mode="date"
+        onConfirm={handleDateConfirm}
+        onCancel={() => setDatePickerVisibility(false)}
+      />
+
       <View style={styles.formGroup}>
-        <TouchableOpacity style={styles.categoryButton}>
+        <Text style={styles.label}>الفئة</Text>
+        <TouchableOpacity style={styles.dropdownButton} onPress={() => setShowReminderModal(true)}>
           <Ionicons name="chevron-down" size={20} color="#6B7280" />
-          <Text style={styles.categoryButtonText}>{formData.category}</Text>
+          <Text style={styles.dropdownButtonText}>{formData.category}</Text>
         </TouchableOpacity>
       </View>
 
@@ -126,27 +154,16 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
         <Text style={styles.submitButtonText}>إرسال</Text>
       </TouchableOpacity>
 
-      <Modal
-        visible={showReminderModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowReminderModal(false)}
-      >
-        <TouchableOpacity 
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowReminderModal(false)}
-        >
+      <Modal visible={showReminderModal} transparent={true} animationType="slide" onRequestClose={() => setShowReminderModal(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowReminderModal(false)}>
           <View style={styles.modalContent}>
             {reminderOptions.map((option) => (
-              <TouchableOpacity
-                key={option.value}
-                style={styles.modalOption}
-                onPress={() => {
-                  setFormData({ ...formData, reminder: option.value });
-                  setShowReminderModal(false);
-                }}
-              >
+              <TouchableOpacity key={option.value} style={styles.modalOption} onPress={() => handleReminderSelect(option)}>
+                <Text style={styles.modalOptionText}>{option.label}</Text>
+              </TouchableOpacity>
+            ))}
+            {categoryOptions.map((option) => (
+              <TouchableOpacity key={option.value} style={styles.modalOption} onPress={() => handleCategorySelect(option)}>
                 <Text style={styles.modalOptionText}>{option.label}</Text>
               </TouchableOpacity>
             ))}
@@ -164,6 +181,11 @@ const styles = StyleSheet.create({
   },
   formGroup: {
     gap: 8
+  },
+  formGroupRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12
   },
   labelContainer: {
     flexDirection: 'row',
@@ -194,10 +216,12 @@ const styles = StyleSheet.create({
   dateContainer: {
     flexDirection: 'row',
     gap: 12,
-    justifyContent: 'flex-end'
+    justifyContent: 'flex-end',
   },
-  dateInput: {
-    flex: 1
+  reminderContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'flex-end',
   },
   dropdownButton: {
     flexDirection: 'row',
@@ -208,12 +232,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     backgroundColor: 'white',
-    minWidth: 140
+    minWidth: 140,
   },
   dropdownButtonText: {
     fontSize: 16,
     color: '#6B7280',
-    marginRight: 8
+    marginRight: 8,
   },
   categoryButton: {
     flexDirection: 'row',
