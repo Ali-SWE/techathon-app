@@ -29,8 +29,30 @@ export const saveObject = async (key: string, value: Doc) => {
 // Load the object
 export const loadObject = async (key: string): Promise<Doc[]>  => {
   const jsonValue = await AsyncStorage.getItem(key);
-  console.log("jsonValue" + jsonValue)
   return jsonValue != null ? JSON.parse(jsonValue) : [];
+};
+
+export const deleteObject = async (key: string, id: string) => {
+  try {
+    const jsonValue = await AsyncStorage.getItem(key);
+    if (!jsonValue) return;
+
+    const data: Doc[] = JSON.parse(jsonValue);
+
+    // Remove the item with the matching id
+    const filtered = data.filter(item => item.id !== id);
+
+    // Reassign ids to be "1", "2", "3", ...
+    const updated = filtered.map((item, index) => ({
+      ...item,
+      id: (index + 1).toString(),
+    }));
+    
+
+    await AsyncStorage.setItem(key, JSON.stringify(updated));
+  } catch (error) {
+    console.error("Failed to delete object:", error);
+  }
 };
 
 export const getBase64FromUri = async (uri: string) => {
@@ -57,3 +79,5 @@ export const bytesToMB = (byteString: string): string => {
   // Convert bytes to MB
   return  mb;
 }
+
+

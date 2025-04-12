@@ -1,6 +1,7 @@
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { deleteObject } from '@/utils/storage';
 
 type Status = 'expired' | 'soon' | 'valid';
 
@@ -14,7 +15,7 @@ type Props = {
   size?: string;
 };
 
-export function DocComponent({ name, description, expiryDate, iconPath, status, size }: Props) {
+export function DocComponent({ id, name, description, expiryDate, iconPath, status, size }: Props) {
   const { showActionSheetWithOptions } = useActionSheet();
 
   const getStatusStyle = (status?: Status) => {
@@ -45,6 +46,10 @@ export function DocComponent({ name, description, expiryDate, iconPath, status, 
     }
   };
 
+  const handleDelete = async (id: string) => {
+    await deleteObject("documents",id)
+  }
+
   const handleMenuPress = () => {
     const options = ['فتح المستند', 'مشاركة', 'حذف', 'إلغاء'];
     const destructiveButtonIndex = 2;
@@ -66,7 +71,8 @@ export function DocComponent({ name, description, expiryDate, iconPath, status, 
             console.log('مشاركة');
             break;
           case 2:
-            console.log('حذف');
+            // console.log("delete")
+            handleDelete(id)
             break;
         }
       }
