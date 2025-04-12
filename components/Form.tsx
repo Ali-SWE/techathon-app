@@ -7,11 +7,13 @@ import { Doc } from '@/utils/types';
 import { useRouter } from 'expo-router';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
+import { scheduleDocReminder } from '@/utils/notification';
 
 const Form = ({ uri, mimeType, size }: { uri: string | string[], mimeType: string | string[], size: string | string[] }) => {
   const router = useRouter();
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [formData, setFormData] = useState({
+    name: '',
     id: '',
     documentName: '',
     description: '',
@@ -60,6 +62,7 @@ const Form = ({ uri, mimeType, size }: { uri: string | string[], mimeType: strin
 
   const handleSubmit = async () => {
     await saveObject("documents", formData);
+    await scheduleDocReminder(formData)
     const result: Doc[] = await loadObject("documents");
     router.replace('/(tabs)/home');
   };

@@ -3,8 +3,9 @@ export type Doc = {
     id: string
     documentName: string
     description: string
+    reminder: string
     category: string
-    expiryDate: string // should type be date?
+    expiryDate: string
     imageBase64: string
     size: string
     mimeType: string
