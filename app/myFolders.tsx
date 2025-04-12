@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { loadObject } from '@/utils/storage';
+import { Doc } from '@/utils/types';
 
 interface Folder {
   id: number;
@@ -26,14 +28,42 @@ export default function MyFoldersScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [folders, setFolders] = useState<Folder[]>([
-    { id: 1, title: 'اغراض المنزل', filesCount: 10, color: 'orange' },
-    { id: 2, title: 'الكترونيات', filesCount: 10, color: 'blue' },
-    { id: 3, title: 'ملابس', filesCount: 8, color: 'orange' },
-    { id: 4, title: 'اثاث', filesCount: 12, color: 'blue' }
+    { id: 1, title: 'اغراض المنزل', filesCount: 0, color: 'orange' },
+    { id: 2, title: 'الكترونيات', filesCount: 0, color: 'blue' },
+    { id: 3, title: 'ملابس', filesCount: 0, color: 'orange' },
+    { id: 4, title: 'اثاث', filesCount: 0, color: 'blue' }
   ]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
+  const [documents, setDocuments] = useState<Doc[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      setLoading(true);
+      const data = await loadObject("documents");
+      setDocuments(data);
+      
+      // Calculate file counts for each folder
+      const updatedFolders = folders.map(folder => ({
+        ...folder,
+        filesCount: data.filter(doc => doc.category === folder.title).length
+      }));
+      setFolders(updatedFolders);
+      
+      setLoading(false);
+    };
+    fetchDocuments();
+  }, []);
+
+  if (documents.length === 0) {
+    return (
+      <View style={[styles.container, { marginTop: 10, alignItems: 'center' }]}>
+        <Text style={styles.title}>ما فيه شي ع البال :(</Text>
+      </View>
+    );
+  }
 
   const filteredFolders = folders.filter(folder =>
     folder.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -290,4 +320,9 @@ const styles = StyleSheet.create({
   confirmButton: { backgroundColor: '#3B82F6' },
   cancelButtonText: { color: '#374151', fontSize: 16, fontWeight: '500' },
   confirmButtonText: { color: 'white', fontSize: 16, fontWeight: '500' },
+  title: {
+    fontWeight: '600',
+    fontSize: 16,
+    textAlign: 'right',
+  },
 });

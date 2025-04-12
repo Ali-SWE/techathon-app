@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,37 +13,25 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { DocComponent } from '@/components/DocComponent';
 import { Doc } from '@/utils/types';
+import { loadObject } from '@/utils/storage';
 
 export default function FolderScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [documents, setDocuments] = useState<Doc[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const [documents, setDocuments] = useState<Doc[]>([
-    {
-      id: '1',
-      documentName: 'فاتورة الكهرباء',
-      description: '',
-      category: 'documents',
-      expiryDate: '',
-      imageBase64: '',
-      size: '2.5 MB',
-      mimeType: '',
-      name: undefined
-    },
-    {
-      id: '2',
-      documentName: 'عقد الإيجار',
-      description: '',
-      category: 'documents',
-      expiryDate: '',
-      imageBase64: '',
-      size: '1.8 MB',
-      mimeType: '',
-      name: undefined
-    },
-  ]);
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      setLoading(true);
+      const data = await loadObject("documents");
+      setDocuments(data);
+      setLoading(false);
+    };
+    fetchDocuments();
+  }, []);
 
   const filteredDocuments = documents.filter(doc =>
     doc.documentName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -52,9 +40,17 @@ export default function FolderScreen() {
   const folder = {
     id: 1,
     title: 'اغراض المنزل',
-    filesCount: 10,
+    filesCount: documents.length,
     color: 'orange' as const,
   };
+
+  if (documents.length === 0) {
+    return (
+      <View style={[styles.container, { marginTop: 10, alignItems: 'center' }]}>
+        <Text style={styles.title}>ما فيه شي ع البال :(</Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -198,5 +194,10 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
+  },
+  title: {
+    fontWeight: '600',
+    fontSize: 16,
+    textAlign: 'right',
   },
 });

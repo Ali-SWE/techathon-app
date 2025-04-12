@@ -20,10 +20,10 @@ import { categories } from '@/utils/constant';
 
 // Folder list without date field
 const folders: Array<{ id: number; title: string; filesCount: number; color: 'orange' | 'blue' }> = [
-  { id: 1, title: 'اغراض المنزل', filesCount: 10, color: 'orange' },
-  { id: 2, title: 'الكترونيات', filesCount: 10, color: 'blue' },
-  { id: 3, title: 'ملابس',  filesCount: 8, color: 'orange' },
-  { id: 4, title: 'اثاث', filesCount: 12, color: 'blue' }
+  { id: 1, title: 'اغراض المنزل', filesCount: 0, color: 'orange' },
+  { id: 2, title: 'الكترونيات', filesCount: 0, color: 'blue' },
+  { id: 3, title: 'ملابس', filesCount: 0, color: 'orange' },
+  { id: 4, title: 'اثاث', filesCount: 0, color: 'blue' }
 ];
 
 export default function HomeScreen() {
@@ -33,6 +33,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const [documents, setDocuments] = useState<Doc[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [folderCounts, setFolderCounts] = useState<Record<number, number>>({});
 
   useEffect(() => {
     const prepare = async () => {
@@ -47,10 +48,21 @@ export default function HomeScreen() {
       setLoading(true);
       const data = await loadObject("documents");
       setDocuments(data);
+      
+      // Calculate file counts for each folder
+      const counts: Record<number, number> = {};
+      data.forEach(doc => {
+        const folderId = folders.findIndex(f => f.title === doc.category) + 1;
+        if (folderId > 0) {
+          counts[folderId] = (counts[folderId] || 0) + 1;
+        }
+      });
+      setFolderCounts(counts);
+      
       setLoading(false);
     };
     fetchDocuments();
-  }, [documents]);
+  }, []);
 
   if (documents.length === 0) {
     return (
@@ -64,7 +76,10 @@ export default function HomeScreen() {
     doc.documentName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredFolders = folders.filter(folder =>
+  const filteredFolders = folders.map(folder => ({
+    ...folder,
+    filesCount: folderCounts[folder.id] || 0
+  })).filter(folder =>
     folder.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
