@@ -70,7 +70,7 @@ export default function MyDocumentsScreen() {
         <TouchableOpacity onPress={() => router.push('/(tabs)/home')}>
           <Ionicons name="arrow-back" size={24} color="#374151" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>المستندات</Text>
+       
         {isSearchVisible ? (
           <View style={styles.searchContainer}>
             <TextInput

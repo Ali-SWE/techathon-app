@@ -95,16 +95,16 @@ const styles = StyleSheet.create({
   iconWrapper: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
-    height: 30,
-    width: 60,
+    marginTop: 8,
+    height: 20,
+    width: 40,
   },
   label: {
-    fontSize: 11,
+    fontSize: 8,
     color: 'gray',
     textAlign: 'center',
-    lineHeight: 20,
-    marginTop: 2,
+    lineHeight: 12,
+    marginTop: 1,
   },
   focusedLabel: {
     color: 'black',
