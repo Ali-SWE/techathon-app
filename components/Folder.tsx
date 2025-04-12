@@ -1,22 +1,31 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 interface FolderCardProps {
   title: string;
   date: string;
   filesCount: number;
   color?: 'orange' | 'blue';
+  id: number;
 }
 
-const FolderCard = ({ title, date, filesCount, color = 'orange', isGridView }: FolderCardProps & { isGridView: boolean }) => {
+const FolderCard = ({ title, date, filesCount, color = 'orange', isGridView, id }: FolderCardProps & { isGridView: boolean }) => {
+  const router = useRouter();
   const folderColor = color === 'blue' ? '#EEF6FF' : '#FFF7ED';
   const iconColor = color === 'blue' ? '#60A5FA' : '#FB923C';
   
   return (
-    <View style={[
-      isGridView ? styles.gridCard : styles.listCard
-    ]}>
+    <TouchableOpacity 
+      onPress={() => router.push({
+        pathname: "/folderContent",
+        params: { id }
+      })}
+      style={[
+        isGridView ? styles.gridCard : styles.listCard
+      ]}
+    >
       <View style={[styles.cardContent, isGridView && styles.gridCardContent]}>
         <View style={[styles.leftSection, isGridView && styles.gridLeftSection]}>
           <View style={[styles.iconContainer, { backgroundColor: folderColor }]}>
@@ -27,44 +36,38 @@ const FolderCard = ({ title, date, filesCount, color = 'orange', isGridView }: F
             <Text style={styles.folderMeta}>{date} · {filesCount} ملفات</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.menuButton}>
+        <TouchableOpacity 
+          style={styles.menuButton}
+          onPress={(e) => {
+            e.stopPropagation();
+            // Handle menu button click
+          }}
+        >
           <View style={styles.menuDot} />
           <View style={styles.menuDot} />
           <View style={styles.menuDot} />
         </TouchableOpacity>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
 interface FoldersSectionProps {
   isGridView: boolean;
+  folders: Array<FolderCardProps>;
 }
 
-const FoldersSection = ({ isGridView }: FoldersSectionProps) => {
-  const folders: Array<FolderCardProps & { id: number }> = [
-    { id: 1, title: 'اغراض المنزل', date: 'April 19, 2025', filesCount: 10, color: 'orange' },
-    { id: 2, title: 'الكترونيات', date: 'April 19, 2025', filesCount: 10, color: 'blue' },
-    { id: 3, title: 'ملابس', date: 'April 19, 2025', filesCount: 8, color: 'orange' },
-    { id: 4, title: 'اثاث', date: 'April 19, 2025', filesCount: 12, color: 'blue' }
-  ];
-
+const FoldersSection = ({ isGridView, folders }: FoldersSectionProps) => {
   const displayedFolders = isGridView ? folders.slice(0, 4) : folders;
 
   return (
     <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-      <TouchableOpacity>
-          <Text style={styles.showAllText}>اظهار الكل</Text>
-        </TouchableOpacity>
-        <Text style={styles.sectionTitle}>كل المجلدات</Text>
-        
-      </View>
       {isGridView ? (
         <View style={styles.folderGridView}>
           {displayedFolders.map(folder => (
             <FolderCard 
               key={folder.id}
+              id={folder.id}
               title={folder.title} 
               date={folder.date} 
               filesCount={folder.filesCount}
@@ -82,6 +85,7 @@ const FoldersSection = ({ isGridView }: FoldersSectionProps) => {
           {displayedFolders.map(folder => (
             <FolderCard 
               key={folder.id}
+              id={folder.id}
               title={folder.title} 
               date={folder.date} 
               filesCount={folder.filesCount}

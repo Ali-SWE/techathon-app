@@ -7,13 +7,13 @@ import {
   StyleSheet,
   StatusBar,
   FlatList,
+  TextInput,
 } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { DocComponent } from '@/components/DocComponent';
-import FoldersSection from '@/components/Folder'; 
-
+import FoldersSection from '@/components/Folder';
 
 const recentDocs = [
   {
@@ -30,9 +30,26 @@ const recentDocs = [
   },
 ];
 
+const folders: Array<{ id: number; title: string; date: string; filesCount: number; color: 'orange' | 'blue' }> = [
+  { id: 1, title: 'اغراض المنزل', date: 'April 19, 2025', filesCount: 10, color: 'orange' },
+  { id: 2, title: 'الكترونيات', date: 'April 19, 2025', filesCount: 10, color: 'blue' },
+  { id: 3, title: 'ملابس', date: 'April 19, 2025', filesCount: 8, color: 'orange' },
+  { id: 4, title: 'اثاث', date: 'April 19, 2025', filesCount: 12, color: 'blue' }
+];
+
 export default function HomeScreen() {
   const [isGridView, setIsGridView] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
   const router = useRouter();
+
+  const filteredDocs = recentDocs.filter(doc => 
+    doc.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredFolders = folders.filter(folder => 
+    folder.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   useEffect(() => {
     const prepare = async () => {
@@ -47,7 +64,7 @@ export default function HomeScreen() {
       <StatusBar barStyle="dark-content" />
 
       <FlatList
-        data={recentDocs}
+        data={filteredDocs}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={
           <>
@@ -67,19 +84,54 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               </View>
 
-              <TouchableOpacity style={styles.searchIcon}>
-                <Ionicons name="search" size={24} color="#374151" />
-              </TouchableOpacity>
+              {isSearchVisible ? (
+                <View style={styles.searchContainer}>
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder="ابحث عن ملف أو مجلد..."
+                    placeholderTextColor={'white'}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    textAlign="right"
+                  />
+                  <TouchableOpacity 
+                    style={styles.closeSearchButton}
+                    onPress={() => {
+                      setIsSearchVisible(false);
+                      setSearchQuery('');
+                    }}
+                  >
+                    <Ionicons name="close" size={24} color="#374151" />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity 
+                  style={styles.searchIcon}
+                  onPress={() => setIsSearchVisible(true)}
+                >
+                  <Ionicons name="search" size={24} color="#374151" />
+                </TouchableOpacity>
+              )}
             </View>
-
-            <FoldersSection isGridView={isGridView} />
 
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}> المجلدات</Text>
+
+                <TouchableOpacity onPress={() => router.push('/myFolders')}>
+                  <Text style={styles.showAllText}>اظهار الكل</Text>
+                </TouchableOpacity>
+              </View>
+              <FoldersSection isGridView={isGridView} folders={filteredFolders} />
+            </View>
+
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>آخر الملفات</Text>
+
                 <TouchableOpacity onPress={() => router.push('/mydocuments')}>
                   <Text style={styles.showAllText}>اظهار الكل</Text>
                 </TouchableOpacity>
-                <Text style={styles.sectionTitle}>آخر الملفات</Text>
               </View>
             </View>
           </>
@@ -113,6 +165,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     gap: 16,
+  },
+  searchContainer: {
+    flex: 1,
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    backgroundColor: '#c2c3c4',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginRight: 16,
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    fontSize: 16,
+    color: '#374151',
+  },
+  closeSearchButton: {
+    padding: 4,
   },
   searchIcon: {
     padding: 6,

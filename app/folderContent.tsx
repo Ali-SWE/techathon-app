@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,57 +10,39 @@ import {
   TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { DocComponent } from '@/components/DocComponent';
-import { Doc } from '@/utils/types';
-import { categories } from '@/utils/constant';
-import { loadObject, bytesToMB } from '@/utils/storage';
 
-// Mock data for documents
-const documents = [
-  {
-    id: '1',
-    name: 'فاتورة الماء',
-    size: '450 KB',
-    iconPath: require('@/assets/icon_wallet.png'),
-  },
-  {
-    id: '2',
-    name: 'تقرير المدرسة',
-    size: '1.2 MB',
-    iconPath: require('@/assets/icon_cards.png'),
-  },
-  // Add more documents as needed
-];
+interface Document {
+  id: string;
+  name: string;
+  size: string;
+  iconPath: string;
+}
 
-export default function MyDocumentsScreen() {
+export default function FolderScreen() {
+  const router = useRouter();
+  const { id } = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-  const router = useRouter();
-  const [documents, setDocuments] = useState<Doc[]>([])
-  const [loading, setLoading] = useState<boolean>(false);
   
-  useEffect(() => {
-      const fetchDocuments = async () => {
-        setLoading(true); // Start loading state
-        const data = await loadObject("documents")
-        setDocuments(data); 
-        setLoading(false); // End loading state
-      };
-      fetchDocuments();
-    }, [documents]);
-    
-    if(documents.length == 0){
-      return (
-        <View style={[styles.container, { marginTop: 10, alignItems: 'center' }]}>
-          <Text style={styles.title}>{"ما فيه شي ع البال:("}</Text>
-      </View>
-      )
-    }
+  // Mock data for folder contents
+  const [documents, setDocuments] = useState<Document[]>([
+    { id: '1', name: 'فاتورة الكهرباء', size: '2.5 MB', iconPath: 'document-text-outline' },
+    { id: '2', name: 'عقد الإيجار', size: '1.8 MB', iconPath: 'document-text-outline' },
+  ]);
 
-  const filteredDocs = documents.filter(doc => 
-    doc.documentName.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredDocuments = documents.filter(doc => 
+    doc.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const folder = {
+    id: 1,
+    title: 'اغراض المنزل',
+    date: 'April 19, 2025',
+    filesCount: 10,
+    color: 'orange' as const,
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -70,7 +52,7 @@ export default function MyDocumentsScreen() {
         <TouchableOpacity onPress={() => router.push('/(tabs)/home')}>
           <Ionicons name="arrow-back" size={24} color="#374151" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>المستندات</Text>
+        <Text style={styles.headerTitle}>{folder.title}</Text>
         {isSearchVisible ? (
           <View style={styles.searchContainer}>
             <TextInput
@@ -100,19 +82,28 @@ export default function MyDocumentsScreen() {
           </TouchableOpacity>
         )}
       </View>
+      <View style={styles.folderInfo}>
+        <View style={[styles.iconContainer, { backgroundColor: folder.color === 'orange' ? '#FFF7ED' : '#EEF6FF' }]}>
+          <Ionicons 
+            name="folder-outline" 
+            size={24} 
+            color={folder.color === 'orange' ? '#FB923C' : '#60A5FA'}
+          />
+        </View>
+        <Text style={styles.folderMeta}>{folder.date} · {folder.filesCount} ملفات</Text>
+      </View>
 
       <FlatList
-        data={filteredDocs}
-        keyExtractor={item => item.id}
+        data={filteredDocuments}
         renderItem={({ item }) => (
           <DocComponent
             id={item.id}
-            name={item.documentName}
-            description={item.description}
-            iconPath={categories[item.category]}
-            size={bytesToMB(item.size) + " MB"}
+            name={item.name}
+            iconPath={item.iconPath}
+            size={item.size}
           />
         )}
+        keyExtractor={(item) => item.id}
         contentContainerStyle={styles.content}
       />
     </SafeAreaView>
@@ -158,12 +149,21 @@ const styles = StyleSheet.create({
   searchIcon: {
     padding: 6,
   },
+  folderInfo: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    padding: 16,
+    gap: 12,
+  },
+  iconContainer: {
+    padding: 12,
+    borderRadius: 12,
+  },
+  folderMeta: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
   content: {
     padding: 16,
   },
-  title: {
-    fontWeight: '600',
-    fontSize: 16,
-    textAlign: 'right',
-  },
-});
+}); 
