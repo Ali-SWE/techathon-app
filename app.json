@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "techathon-app",
-    "slug": "techathon-app",
+    "name": "لا تنساني",
+    "slug": "la-tensani",
+    "icon": "./assets/icon.png",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -27,7 +27,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
