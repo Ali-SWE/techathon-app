@@ -11,11 +11,15 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { DocComponent } from '@/components/DocComponent';
 import { Doc } from '@/utils/types';
 import { loadObject, bytesToMB } from '@/utils/storage';
 import { categories } from '@/utils/constant';
+import { loadObject, bytesToMB } from '@/utils/storage';
+import { categories } from '@/utils/constant';
 
+export default function AllFilesScreen() {
 export default function AllFilesScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
@@ -35,18 +39,19 @@ export default function AllFilesScreen() {
 
   const filteredDocuments = documents.filter(doc =>
     (doc.documentName || '').toLowerCase().includes(searchQuery.toLowerCase())
+    (doc.documentName || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-forward" size={24} color="#374151" />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>كل الملفات</Text>
           <Text style={styles.headerTitle}>كل الملفات</Text>
         </View>
         <View style={{ width: 24 }} />
@@ -58,9 +63,9 @@ export default function AllFilesScreen() {
           <Ionicons name="document-text-outline" size={24} color="#0EA5E9" />
         </View>
         <Text style={styles.folderMeta}>{filteredDocuments.length} ملفات</Text>
+        <Text style={styles.folderMeta}>{filteredDocuments.length} ملفات</Text>
       </View>
 
-      {/* Search */}
       <View style={{ paddingHorizontal: 16 }}>
         {isSearchVisible ? (
           <View style={styles.searchContainer}>
@@ -96,10 +101,24 @@ export default function AllFilesScreen() {
       <FlatList
         data={filteredDocuments}
         keyExtractor={(item, index) => item.id ? item.id.toString() : `doc-${index}`}
+        keyExtractor={(item, index) => item.id ? item.id.toString() : `doc-${index}`}
         renderItem={({ item }) => (
           <DocComponent
             id={item.id}
             name={item.documentName}
+            description={item.description}
+            iconPath={
+              categories[item.category]
+                ? categories[item.category]
+                : { uri: `data:image/jpeg;base64,${item.imageBase64}` }
+            }
+            size={bytesToMB(item.size) + ' MB'}
+            imageBase64={item.imageBase64}
+            mimeType={item.mimeType}
+            expiryDate={item.expiryDate}
+            status={item.status}
+          />
+        )}
             description={item.description}
             iconPath={
               categories[item.category]
@@ -120,6 +139,7 @@ export default function AllFilesScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#F9FAFB' },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   header: {
     flexDirection: 'row-reverse',
@@ -152,6 +172,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#374151',
   },
+  closeSearchButton: { padding: 4 },
+  searchIcon: { padding: 6 },
   closeSearchButton: { padding: 4 },
   searchIcon: { padding: 6 },
   folderInfo: {
