@@ -1,4 +1,3 @@
-// No changes to imports
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal, Image, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -41,10 +40,10 @@ const Form = ({ uri, mimeType, size }: { uri: string | string[], mimeType: strin
   ];
 
   const categoryOptions = [
-    { label: 'محفظة', value: 'wallet' },
-    { label: 'بطاقات', value: 'cards' },
-    { label: 'تسوق', value: 'shopping' },
-    { label: 'وثائق', value: 'documents' },
+    { label: 'الكترونيات', value: 'الكترونيات' },
+    { label: 'بطاقات', value: 'بطاقات' },
+    { label: 'تسوق', value: 'تسوق' },
+    { label: 'محفظة', value: 'محفظة' },
   ];
 
   useEffect(() => {
@@ -61,9 +60,16 @@ const Form = ({ uri, mimeType, size }: { uri: string | string[], mimeType: strin
   }, []);
 
   const handleSubmit = async () => {
-    await saveObject("documents", formData);
-    await scheduleDocReminder(formData)
-    const result: Doc[] = await loadObject("documents");
+    const prevDocs: Doc[] = await loadObject("documents") || [];
+
+    const newDoc: Doc = {
+      ...formData,
+      id: Date.now().toString(),
+    };
+
+    const updatedDocs = [...prevDocs, newDoc];
+    await saveObject("documents", updatedDocs);
+    await scheduleDocReminder(newDoc);
     router.replace('/(tabs)/home');
   };
 
@@ -185,6 +191,7 @@ const Form = ({ uri, mimeType, size }: { uri: string | string[], mimeType: strin
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {

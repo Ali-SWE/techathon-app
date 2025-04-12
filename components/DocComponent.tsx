@@ -15,46 +15,17 @@ type Props = {
   iconPath: any;
   status?: Status;
   size?: string;
-  imageBase64?: string
-  mimeType?: string
+  imageBase64?: string;
+  mimeType?: string;
 };
 
 export function DocComponent({ id, name, description, expiryDate, iconPath, status, size, imageBase64, mimeType }: Props) {
   const { showActionSheetWithOptions } = useActionSheet();
-
-  const getStatusStyle = (status?: Status) => {
-    switch (status) {
-      case 'expired':
-        return {
-          label: 'منتهي',
-          icon: 'calendar-remove',
-          color: '#e63946',
-          bg: '#fdecea',
-        };
-      case 'soon':
-        return {
-          label: 'قريبًا',
-          icon: 'calendar-clock',
-          color: '#f4a261',
-          bg: '#fff4e5',
-        };
-      case 'valid':
-        return {
-          label: 'ساري',
-          icon: 'calendar-check',
-          color: '#2a9d8f',
-          bg: '#e6f4f1',
-        };
-      default:
-        return null;
-    }
-  };
-
   const [showImageModal, setShowImageModal] = useState(false);
 
   const handleDelete = async (id: string) => {
-    await deleteObject("documents",id)
-  }
+    await deleteObject("documents", id);
+  };
 
   const handleMenuPress = () => {
     const options = ['فتح المستند', 'حذف', 'إلغاء'];
@@ -71,14 +42,27 @@ export function DocComponent({ id, name, description, expiryDate, iconPath, stat
       (selectedIndex) => {
         switch (selectedIndex) {
           case 0:
-            setShowImageModal(true)
+            setShowImageModal(true);
             break;
           case 1:
-            handleDelete(id)
+            handleDelete(id);
             break;
         }
       }
     );
+  };
+
+  const getStatusStyle = (status?: Status) => {
+    switch (status) {
+      case 'expired':
+        return { label: 'منتهي', icon: 'calendar-remove', color: '#e63946', bg: '#fdecea' };
+      case 'soon':
+        return { label: 'قريبًا', icon: 'calendar-clock', color: '#f4a261', bg: '#fff4e5' };
+      case 'valid':
+        return { label: 'ساري', icon: 'calendar-check', color: '#2a9d8f', bg: '#e6f4f1' };
+      default:
+        return null;
+    }
   };
 
   const statusData = getStatusStyle(status);
@@ -91,7 +75,11 @@ export function DocComponent({ id, name, description, expiryDate, iconPath, stat
 
       <View style={styles.iconContainer}>
         <View style={styles.iconBackground}>
-          <Image source={iconPath} style={{ width: 50, height: 50 }} />
+          <Image
+            source={typeof iconPath === 'string' ? { uri: iconPath } : iconPath}
+            style={{ width: 50, height: 50, borderRadius: 8 }}
+            resizeMode="cover"
+          />
         </View>
       </View>
 
@@ -118,11 +106,12 @@ export function DocComponent({ id, name, description, expiryDate, iconPath, stat
           )}
         </View>
       </View>
+
       <ImagePreviewModal
         visible={showImageModal}
         onClose={() => setShowImageModal(false)}
-        base64 = {imageBase64+""}
-        mimeType= {mimeType + ""}
+        base64={imageBase64 + ""}
+        mimeType={mimeType + ""}
       />
     </View>
   );

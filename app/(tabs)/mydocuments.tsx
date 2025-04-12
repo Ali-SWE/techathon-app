@@ -8,6 +8,7 @@ import {
   FlatList,
   TextInput,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -27,20 +28,30 @@ export default function MyDocumentsScreen() {
     const fetchDocuments = async () => {
       setLoading(true);
       const data = await loadObject('documents');
-      setDocuments(data);
+      if (Array.isArray(data)) {
+        setDocuments(data);
+      }
       setLoading(false);
     };
     fetchDocuments();
-  }, [documents]);
+  }, []);
 
   const filteredDocs = documents.filter(doc =>
-    doc.documentName.toLowerCase().includes(searchQuery.toLowerCase())
+    (doc.documentName || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#3B82F6" />
+      </View>
+    );
+  }
 
   if (documents.length === 0) {
     return (
       <View style={[styles.container, { marginTop: 10, alignItems: 'center' }]}>
-        <Text style={styles.title}>{"ما في شي ع البال:("}</Text>
+        <Text style={styles.title}>ما في شي ع البال :(</Text>
       </View>
     );
   }

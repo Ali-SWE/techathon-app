@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { loadObject } from '@/utils/storage';
+import { loadObject, saveObject } from '@/utils/storage';
 import { Doc } from '@/utils/types';
 
 interface Folder {
@@ -27,12 +27,7 @@ export default function MyFoldersScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-  const [folders, setFolders] = useState<Folder[]>([
-    { id: 1, title: 'اغراض المنزل', filesCount: 0, color: 'orange' },
-    { id: 2, title: 'الكترونيات', filesCount: 0, color: 'blue' },
-    { id: 3, title: 'ملابس', filesCount: 0, color: 'orange' },
-    { id: 4, title: 'اثاث', filesCount: 0, color: 'blue' }
-  ]);
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
@@ -44,78 +39,49 @@ export default function MyFoldersScreen() {
       setLoading(true);
       const data = await loadObject("documents");
       setDocuments(data);
-      
-      // Calculate file counts for each folder
-      const updatedFolders = folders.map(folder => ({
-        ...folder,
-        filesCount: data.filter(doc => doc.category === folder.title).length
-      }));
-      setFolders(updatedFolders);
-      
+
+      const categoryMap: Record<string, Folder> = {};
+      data.forEach(doc => {
+        if (!categoryMap[doc.category]) {
+          categoryMap[doc.category] = {
+            id: Date.now() + Object.keys(categoryMap).length,
+            title: doc.category,
+            filesCount: 1,
+            color: Math.random() > 0.5 ? 'orange' : 'blue'
+          };
+        } else {
+          categoryMap[doc.category].filesCount += 1;
+        }
+      });
+
+      setFolders(Object.values(categoryMap));
       setLoading(false);
     };
     fetchDocuments();
   }, []);
 
-  if (documents.length === 0) {
-    return (
-      <View style={[styles.container, { marginTop: 10, alignItems: 'center' }]}>
-        <Text style={styles.title}>ما فيه شي ع البال :(</Text>
-      </View>
-    );
-  }
-
-  const filteredFolders = folders.filter(folder =>
-    folder.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleAddFolder = () => {
-    if (newFolderName.trim()) {
-      const newFolder: Folder = {
-        id: Date.now(),
-        title: newFolderName,
-        filesCount: 0,
-        color: Math.random() > 0.5 ? 'orange' : 'blue'
-      };
-      setFolders([...folders, newFolder]);
-      setNewFolderName('');
-      setIsModalVisible(false);
-    }
-  };
-
-  const handleDeleteFolder = (folderId: number) => {
-    Alert.alert(
-      'حذف المجلد',
-      'هل أنت متأكد من حذف هذا المجلد؟',
-      [
-        { text: 'إلغاء', style: 'cancel' },
-        {
-          text: 'حذف',
-          style: 'destructive',
-          onPress: () => setFolders(folders.filter(f => f.id !== folderId))
-        }
-      ]
-    );
-  };
-
-  const handleRenameFolder = (folder: Folder) => {
-    setEditingFolder(folder);
-    setNewFolderName(folder.title);
-    setIsModalVisible(true);
-  };
-
-  const handleUpdateFolder = () => {
+  const handleUpdateFolder = async () => {
     if (editingFolder && newFolderName.trim()) {
-      setFolders(folders.map(f =>
-        f.id === editingFolder.id
-          ? { ...f, title: newFolderName }
-          : f
-      ));
+      const updatedFolders = folders.map(f =>
+        f.id === editingFolder.id ? { ...f, title: newFolderName } : f
+      );
+
+      const updatedDocuments = documents.map(doc =>
+        doc.category === editingFolder.title ? { ...doc, category: newFolderName } : doc
+      );
+
+      setFolders(updatedFolders);
+      setDocuments(updatedDocuments);
+      await saveObject("documents", updatedDocuments);
       setEditingFolder(null);
       setNewFolderName('');
       setIsModalVisible(false);
     }
   };
+
+  const filteredFolders = folders.filter(folder =>
+    folder.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -135,90 +101,51 @@ export default function MyFoldersScreen() {
               onChangeText={setSearchQuery}
               textAlign="right"
             />
-            <TouchableOpacity
-              style={styles.closeSearchButton}
-              onPress={() => {
-                setIsSearchVisible(false);
-                setSearchQuery('');
-              }}
-            >
+            <TouchableOpacity onPress={() => { setIsSearchVisible(false); setSearchQuery(''); }}>
               <Ionicons name="close" size={24} color="#374151" />
             </TouchableOpacity>
           </View>
         ) : (
-          <View style={styles.headerRight}>
-            <TouchableOpacity
-              style={styles.searchIcon}
-              onPress={() => setIsSearchVisible(true)}
-            >
-              <Ionicons name="search" size={24} color="#374151" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => {
-                setEditingFolder(null);
-                setNewFolderName('');
-                setIsModalVisible(true);
-              }}
-            >
-              <Ionicons name="add" size={24} color="#3B82F6" />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity onPress={() => setIsSearchVisible(true)}>
+            <Ionicons name="search" size={24} color="#374151" />
+          </TouchableOpacity>
         )}
       </View>
 
       <FlatList
         data={filteredFolders}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={[styles.folderCard, { backgroundColor: item.color === 'blue' ? '#EEF6FF' : '#FFF7ED' }]}
             onPress={() => router.push({ pathname: "/folderContent", params: { id: item.id } })}
           >
-            <View style={styles.folderContent}>
-              <View style={styles.folderInfo}>
-                <View style={[styles.iconContainer, { backgroundColor: item.color === 'blue' ? '#60A5FA' : '#FB923C' }]}>
-                  <Ionicons name="folder-outline" size={24} color="white" />
-                </View>
-                <View>
-                  <Text style={styles.folderTitle}>{item.title}</Text>
-                  <Text style={styles.folderMeta}>{item.filesCount} ملفات</Text>
-                </View>
+            <View style={styles.folderInfo}>
+              <View style={[styles.iconContainer, { backgroundColor: item.color === 'blue' ? '#60A5FA' : '#FB923C' }]}> 
+                <Ionicons name="folder-outline" size={24} color="white" />
               </View>
-              <TouchableOpacity
-                style={styles.menuButton}
-                onPress={(e) => {
-                  e.stopPropagation();
-                  Alert.alert(
-                    'خيارات المجلد',
-                    '',
-                    [
-                      { text: 'إعادة تسمية', onPress: () => handleRenameFolder(item) },
-                      { text: 'حذف', style: 'destructive', onPress: () => handleDeleteFolder(item.id) },
-                      { text: 'إلغاء', style: 'cancel' }
-                    ]
-                  );
-                }}
-              >
+              <View>
+                <Text style={styles.folderTitle}>{item.title}</Text>
+                <Text style={styles.folderMeta}>{item.filesCount} ملفات</Text>
+              </View>
+              <TouchableOpacity onPress={() => {
+                Alert.alert('خيارات المجلد', '', [
+                  { text: 'إعادة تسمية', onPress: () => { setEditingFolder(item); setNewFolderName(item.title); setIsModalVisible(true); } },
+                  { text: 'إلغاء', style: 'cancel' }
+                ]);
+              }}>
                 <Ionicons name="ellipsis-vertical" size={20} color="#9CA3AF" />
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
         )}
-        keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.content}
       />
 
-      <Modal
-        visible={isModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setIsModalVisible(false)}
-      >
+      <Modal visible={isModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {editingFolder ? 'إعادة تسمية المجلد' : 'إضافة مجلد جديد'}
-            </Text>
+            <Text style={styles.modalTitle}>{editingFolder ? 'إعادة تسمية المجلد' : 'إضافة مجلد جديد'}</Text>
             <TextInput
               style={styles.input}
               placeholder="اسم المجلد"
@@ -227,23 +154,11 @@ export default function MyFoldersScreen() {
               textAlign="right"
             />
             <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => {
-                  setIsModalVisible(false);
-                  setNewFolderName('');
-                  setEditingFolder(null);
-                }}
-              >
-                <Text style={styles.cancelButtonText}>إلغاء</Text>
+              <TouchableOpacity onPress={() => { setIsModalVisible(false); setNewFolderName(''); setEditingFolder(null); }}>
+                <Text style={{ color: '#374151' }}>إلغاء</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.confirmButton]}
-                onPress={editingFolder ? handleUpdateFolder : handleAddFolder}
-              >
-                <Text style={styles.confirmButtonText}>
-                  {editingFolder ? 'حفظ' : 'إضافة'}
-                </Text>
+              <TouchableOpacity onPress={handleUpdateFolder}>
+                <Text style={{ color: '#3B82F6' }}>حفظ</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -255,74 +170,19 @@ export default function MyFoldersScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  header: {
-    flexDirection: 'row-reverse',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
+  header: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', padding: 16 },
   headerTitle: { fontSize: 18, fontWeight: '600', color: '#111827' },
-  headerRight: { flexDirection: 'row-reverse', gap: 16 },
-  searchContainer: {
-    flex: 1,
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    backgroundColor: '#c2c3c4',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    marginRight: 16,
-  },
+  searchContainer: { flexDirection: 'row-reverse', alignItems: 'center', backgroundColor: '#c2c3c4', borderRadius: 8, paddingHorizontal: 12 },
   searchInput: { flex: 1, height: 40, fontSize: 16, color: '#374151' },
-  closeSearchButton: { padding: 4 },
-  searchIcon: { padding: 6 },
-  addButton: { padding: 6 },
-  content: { padding: 16 },
-  folderCard: {
-    borderRadius: 12,
-    marginBottom: 16,
-    padding: 16,
-    elevation: 1,
-  },
-  folderContent: {
-    flexDirection: 'row-reverse',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  folderInfo: { flexDirection: 'row-reverse', alignItems: 'center', gap: 12 },
-  iconContainer: { padding: 12, borderRadius: 12 },
+  folderCard: { padding: 16, borderRadius: 12, marginBottom: 12 },
+  folderInfo: { flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between' },
+  iconContainer: { padding: 10, borderRadius: 10 },
   folderTitle: { fontSize: 16, fontWeight: '500', color: '#111827' },
-  folderMeta: { fontSize: 14, color: '#6B7280', marginTop: 4 },
-  menuButton: { padding: 4 },
-  modalOverlay: {
-    flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center', alignItems: 'center'
-  },
-  modalContent: {
-    backgroundColor: 'white', borderRadius: 16, padding: 24, width: '90%'
-  },
-  modalTitle: {
-    fontSize: 18, fontWeight: '600', color: '#111827',
-    textAlign: 'right', marginBottom: 16
-  },
-  input: {
-    borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8,
-    padding: 12, fontSize: 16, marginBottom: 16
-  },
-  modalButtons: {
-    flexDirection: 'row-reverse',
-    justifyContent: 'flex-end',
-    gap: 12,
-  },
-  modalButton: { paddingVertical: 12, paddingHorizontal: 24, borderRadius: 8 },
-  cancelButton: { backgroundColor: '#F3F4F6' },
-  confirmButton: { backgroundColor: '#3B82F6' },
-  cancelButtonText: { color: '#374151', fontSize: 16, fontWeight: '500' },
-  confirmButtonText: { color: 'white', fontSize: 16, fontWeight: '500' },
-  title: {
-    fontWeight: '600',
-    fontSize: 16,
-    textAlign: 'right',
-  },
+  folderMeta: { fontSize: 14, color: '#6B7280' },
+  content: { padding: 16 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'center', alignItems: 'center' },
+  modalContent: { backgroundColor: 'white', padding: 20, borderRadius: 12, width: '90%' },
+  modalTitle: { fontSize: 18, fontWeight: '600', textAlign: 'right', marginBottom: 12 },
+  input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, padding: 10, fontSize: 16, marginBottom: 12 },
+  modalButtons: { flexDirection: 'row-reverse', justifyContent: 'flex-end', gap: 12 },
 });

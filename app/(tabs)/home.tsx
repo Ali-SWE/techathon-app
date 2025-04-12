@@ -9,78 +9,51 @@ import {
   FlatList,
   TextInput,
 } from 'react-native';
-import * as SplashScreen from 'expo-splash-screen';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { DocComponent } from '@/components/DocComponent';
 import FoldersSection from '@/components/Folder';
 import { loadObject, bytesToMB } from '@/utils/storage';
 import { Doc } from '@/utils/types';
 import { categories } from '@/utils/constant';
 
-// Folder list without date field
-const folders: Array<{ id: number; title: string; filesCount: number; color: 'orange' | 'blue' }> = [
-  { id: 1, title: 'اغراض المنزل', filesCount: 0, color: 'orange' },
-  { id: 2, title: 'الكترونيات', filesCount: 0, color: 'blue' },
-  { id: 3, title: 'ملابس', filesCount: 0, color: 'orange' },
-  { id: 4, title: 'اثاث', filesCount: 0, color: 'blue' }
+const initialFolders = [
+  { id: 1, title: 'الالكترونيات', category: 'electronics', filesCount: 0, color: 'blue' },
+  { id: 2, title: 'البطاقات', category: 'cards', filesCount: 0, color: 'orange' },
+  { id: 3, title: 'التسوق', category: 'shopping', filesCount: 0, color: 'blue' },
+  { id: 4, title: 'المحفظة', category: 'wallet', filesCount: 0, color: 'orange' },
 ];
 
 export default function HomeScreen() {
   const [isGridView, setIsGridView] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-  const router = useRouter();
+  const [folders, setFolders] = useState(initialFolders);
   const [documents, setDocuments] = useState<Doc[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [folderCounts, setFolderCounts] = useState<Record<number, number>>({});
-
-  useEffect(() => {
-    const prepare = async () => {
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      await SplashScreen.hideAsync();
-    };
-    prepare();
-  }, []);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchDocuments = async () => {
-      setLoading(true);
       const data = await loadObject("documents");
-      setDocuments(data);
-      
-      // Calculate file counts for each folder
-      const counts: Record<number, number> = {};
-      data.forEach(doc => {
-        const folderId = folders.findIndex(f => f.title === doc.category) + 1;
-        if (folderId > 0) {
-          counts[folderId] = (counts[folderId] || 0) + 1;
-        }
-      });
-      setFolderCounts(counts);
-      
-      setLoading(false);
+      if (Array.isArray(data)) {
+        setDocuments(data);
+
+        const updated = initialFolders.map(folder => ({
+          ...folder,
+          filesCount: data.filter(doc => doc.category === folder.category).length,
+        }));
+        setFolders(updated);
+      }
     };
     fetchDocuments();
-  }, [documents]);
-
-  if (documents.length === 0) {
-    return (
-      <View style={[styles.container, { marginTop: 10, alignItems: 'center' }]}>
-        <Text style={styles.title}>{"ما في شي ع البال:("}</Text>
-      </View>
-    );
-  }
+  }, []);
 
   const filteredDocs = documents.filter(doc =>
-    doc.documentName.toLowerCase().includes(searchQuery.toLowerCase())
+    (doc.documentName || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredFolders = folders.map(folder => ({
-    ...folder,
-    filesCount: folderCounts[folder.id] || 0
-  })).filter(folder =>
-    folder.title.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredFolders = folders.filter(folder =>
+    (folder.title || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -89,7 +62,7 @@ export default function HomeScreen() {
 
       <FlatList
         data={filteredDocs}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => item.id?.toString() ?? `doc-${index}`}
         ListHeaderComponent={
           <>
             <View style={styles.header}>
@@ -164,7 +137,11 @@ export default function HomeScreen() {
             id={item.id}
             name={item.documentName}
             description={item.description}
-            iconPath={categories[item.category]}
+            iconPath={
+              typeof categories[item.category] === 'number'
+                ? categories[item.category]
+                : { uri: `data:image/jpeg;base64,${item.imageBase64}` }
+            }
             size={bytesToMB(item.size) + " MB"}
             imageBase64={item.imageBase64}
             mimeType={item.mimeType}
@@ -177,19 +154,9 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
-  },
-  content: {
-    paddingHorizontal: 16,
-    paddingBottom: 30,
-  },
-  title: {
-    fontWeight: '600',
-    fontSize: 16,
-    textAlign: 'right',
-  },
+  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  content: { paddingHorizontal: 16, paddingBottom: 30 },
+  title: { fontWeight: '600', fontSize: 16, textAlign: 'right' },
   header: {
     flexDirection: 'row-reverse',
     justifyContent: 'space-between',
@@ -206,32 +173,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     gap: 8,
   },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    fontSize: 16,
-    color: '#374151',
-  },
-  closeSearchButton: {
-    padding: 4,
-  },
-  searchIcon: {
-    padding: 6,
-  },
-  viewToggle: {
-    flexDirection: 'row-reverse',
-    gap: 8,
-  },
-  viewToggleButton: {
-    padding: 8,
-    borderRadius: 8,
-  },
-  viewToggleButtonActive: {
-    backgroundColor: '#EBF5FF',
-  },
-  section: {
-    marginTop: 24,
-  },
+  searchInput: { flex: 1, height: 40, fontSize: 16, color: '#374151' },
+  closeSearchButton: { padding: 4 },
+  searchIcon: { padding: 6 },
+  viewToggle: { flexDirection: 'row-reverse', gap: 8 },
+  viewToggleButton: { padding: 8, borderRadius: 8 },
+  viewToggleButtonActive: { backgroundColor: '#EBF5FF' },
+  section: { marginTop: 24 },
   sectionHeader: {
     flexDirection: 'row-reverse',
     justifyContent: 'space-between',
