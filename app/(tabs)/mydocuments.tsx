@@ -34,7 +34,7 @@ export default function MyDocumentsScreen() {
   }, [documents]);
 
   const filteredDocs = documents.filter(doc =>
-    doc.documentName.toLowerCase().includes(searchQuery.toLowerCase())
+    (doc.documentName || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (documents.length === 0) {

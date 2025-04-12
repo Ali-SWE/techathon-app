@@ -10,14 +10,14 @@ import {
   TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { DocComponent } from '@/components/DocComponent';
 import { Doc } from '@/utils/types';
-import { loadObject } from '@/utils/storage';
+import { loadObject, bytesToMB } from '@/utils/storage';
+import { categories } from '@/utils/constant';
 
-export default function FolderScreen() {
+export default function AllFilesScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [documents, setDocuments] = useState<Doc[]>([]);
@@ -27,66 +27,39 @@ export default function FolderScreen() {
     const fetchDocuments = async () => {
       setLoading(true);
       const data = await loadObject("documents");
-      setDocuments(data);
+      if (Array.isArray(data)) {
+        setDocuments(data);
+      }
       setLoading(false);
     };
     fetchDocuments();
   }, []);
 
   const filteredDocuments = documents.filter(doc =>
-    doc.documentName.toLowerCase().includes(searchQuery.toLowerCase())
+    (doc.documentName || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const folder = {
-    id: 1,
-    title: 'اغراض المنزل',
-    filesCount: documents.length,
-    color: 'orange' as const,
-  };
-
-  if (documents.length === 0) {
-    return (
-      <View style={[styles.container, { marginTop: 10, alignItems: 'center' }]}>
-        <Text style={styles.title}>ما فيه شي ع البال :(</Text>
-      </View>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.push("/(tabs)/home")}>
           <Ionicons name="arrow-forward" size={24} color="#374151" />
         </TouchableOpacity>
-
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>{folder.title}</Text>
+          <Text style={styles.headerTitle}>كل الملفات</Text>
         </View>
-
         <View style={{ width: 24 }} />
       </View>
 
-      {/* Folder info */}
       <View style={styles.folderInfo}>
-        <View style={[
-          styles.iconContainer,
-          { backgroundColor: folder.color === 'orange' ? '#FFF7ED' : '#EEF6FF' }
-        ]}>
-          <Ionicons
-            name="folder-outline"
-            size={24}
-            color={folder.color === 'orange' ? '#FB923C' : '#60A5FA'}
-          />
+        <View style={[styles.iconContainer, { backgroundColor: '#E0F2FE' }]}>
+          <Ionicons name="document-outline" size={24} color="#0EA5E9" />
         </View>
-        <Text style={styles.folderMeta}>
-          {folder.filesCount} <Text>ملفات</Text>
-        </Text>
+        <Text style={styles.folderMeta}>{filteredDocuments.length} ملفات</Text>
       </View>
 
-      {/* Search */}
       <View style={{ paddingHorizontal: 16 }}>
         {isSearchVisible ? (
           <View style={styles.searchContainer}>
@@ -118,18 +91,26 @@ export default function FolderScreen() {
         )}
       </View>
 
-      {/* Document list */}
       <FlatList
         data={filteredDocuments}
+        keyExtractor={(item, index) => item.id ? item.id.toString() : `doc-${index}`}
         renderItem={({ item }) => (
           <DocComponent
             id={item.id}
             name={item.documentName}
-            iconPath={item.imageBase64}
-            size={item.size}
+            description={item.description}
+            iconPath={
+              categories[item.category]
+                ? categories[item.category]
+                : { uri: `data:image/jpeg;base64,${item.imageBase64}` }
+            }
+            size={bytesToMB(item.size) + ' MB'}
+            imageBase64={item.imageBase64}
+            mimeType={item.mimeType}
+            expiryDate={item.expiryDate}
+            status={item.status}
           />
         )}
-        keyExtractor={(item) => item.id}
         contentContainerStyle={styles.content}
       />
     </SafeAreaView>
@@ -137,10 +118,7 @@ export default function FolderScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
-  },
+  container: { flex: 1, backgroundColor: '#F9FAFB' },
   header: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
@@ -172,12 +150,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#374151',
   },
-  closeSearchButton: {
-    padding: 4,
-  },
-  searchIcon: {
-    padding: 6,
-  },
+  closeSearchButton: { padding: 4 },
+  searchIcon: { padding: 6 },
   folderInfo: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
@@ -194,10 +168,5 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
-  },
-  title: {
-    fontWeight: '600',
-    fontSize: 16,
-    textAlign: 'right',
   },
 });

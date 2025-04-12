@@ -1,18 +1,19 @@
 import React from 'react';
 import {
+  Image,
+  Platform,
+  StyleSheet,
   View,
   Text,
-  StyleSheet,
-  Platform,
+  TouchableOpacity,
 } from 'react-native';
 import { Tabs } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
 import AddButton from '@/components/AddButton';
-import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 
 export default function TabLayout() {
   return (
-    <ActionSheetProvider>
+    <>
       <Tabs
         screenOptions={{
           tabBarShowLabel: false,
@@ -54,12 +55,12 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="add"
-          options={{
-            title: 'إضافة',
-            tabBarButton: (props) => <AddButton {...props} />,
-          }}
-        />
+        name="add"
+        options={{
+          title: 'إضافة',
+          tabBarButton: (props) => <AddButton {...props} />,
+        }}
+      />
         <Tabs.Screen
           name="mydocuments"
           options={{
@@ -85,21 +86,23 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-    </ActionSheetProvider>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   iconWrapper: {
-    width: 60,
-    height: 60,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 20,
+    height: 30,
+    width: 60,
   },
   label: {
-    fontSize: 8,
+    fontSize: 11,
     color: 'gray',
     textAlign: 'center',
+    lineHeight: 20,
     marginTop: 2,
   },
   focusedLabel: {
