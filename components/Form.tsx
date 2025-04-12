@@ -16,13 +16,14 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
     documentName: '',
     description: '',
     expiryDate: '',
-    reminder: 'تذكير قبل',
-    category: 'wallet',
+    reminder: '',
+    category: '',
     imageBase64: '',
     size: size + ""
   });
 
   const [showReminderModal, setShowReminderModal] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   const reminderOptions = [
     { label: 'بدون تذكير', value: '0' },
@@ -61,7 +62,7 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
     console.log('Form submitted:', formData);
     saveObject("documents", formData);
     const result: Doc[] = await loadObject("documents");
-    router.replace('/index');
+    // router.replace('/index');
   };
   
   const handleDateConfirm = (date: Date) => {
@@ -76,6 +77,7 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
 
   const handleCategorySelect = (category: { label: string, value: string }) => {
     setFormData({ ...formData, category: category.value });
+    setShowCategoryModal(false);
   };
 
   return (
@@ -120,7 +122,7 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
             onPress={() => setShowReminderModal(true)} // Show the reminder modal
           >
             <Ionicons name="chevron-down" size={20} color="#6B7280" />
-            <Text style={styles.dropdownButtonText}>{formData.reminder}</Text>
+            <Text style={styles.dropdownButtonText}>{formData.reminder || 'تذكير قبل'}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -143,9 +145,9 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
 
       <View style={styles.formGroup}>
         <Text style={styles.label}>الفئة</Text>
-        <TouchableOpacity style={styles.dropdownButton} onPress={() => setShowReminderModal(true)}>
+        <TouchableOpacity style={styles.dropdownButton} onPress={() => setShowCategoryModal(true)}>
           <Ionicons name="chevron-down" size={20} color="#6B7280" />
-          <Text style={styles.dropdownButtonText}>{formData.category}</Text>
+          <Text style={styles.dropdownButtonText}>{formData.category || 'اختر الفئة'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -154,6 +156,7 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
         <Text style={styles.submitButtonText}>إرسال</Text>
       </TouchableOpacity>
 
+    {/* reminder modal */}
       <Modal visible={showReminderModal} transparent={true} animationType="slide" onRequestClose={() => setShowReminderModal(false)}>
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowReminderModal(false)}>
           <View style={styles.modalContent}>
@@ -162,6 +165,14 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
                 <Text style={styles.modalOptionText}>{option.label}</Text>
               </TouchableOpacity>
             ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* category modal */}
+      <Modal visible={showCategoryModal} transparent={true} animationType="slide" onRequestClose={() => setShowCategoryModal(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowCategoryModal(false)}>
+          <View style={styles.modalContent}>
             {categoryOptions.map((option) => (
               <TouchableOpacity key={option.value} style={styles.modalOption} onPress={() => handleCategorySelect(option)}>
                 <Text style={styles.modalOptionText}>{option.label}</Text>
