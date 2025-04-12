@@ -1,14 +1,14 @@
+// No changes to imports
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal, Image, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { getBase64FromUri, loadObject } from '@/utils/storage';
-import { saveObject } from '@/utils/storage';
+import { getBase64FromUri, loadObject, saveObject } from '@/utils/storage';
 import { Doc } from '@/utils/types';
 import { useRouter } from 'expo-router';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
 
-const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string | string[], size: string | string[]}) => {
+const Form = ({ uri, mimeType, size }: { uri: string | string[], mimeType: string | string[], size: string | string[] }) => {
   const router = useRouter();
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [formData, setFormData] = useState({
@@ -25,6 +25,7 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
 
   const [showReminderModal, setShowReminderModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const reminderOptions = [
     { label: 'بدون تذكير', value: '0' },
@@ -44,13 +45,11 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
     { label: 'وثائق', value: 'documents' },
   ];
 
-  const [loading, setLoading] = useState<boolean>(false);
-
   useEffect(() => {
     const fetchImageBase64 = async () => {
       setLoading(true);
-      const base64 = await getBase64FromUri(uri+"");
-      setFormData({ ...formData, imageBase64: base64+"" });
+      const base64 = await getBase64FromUri(uri + "");
+      setFormData(prev => ({ ...prev, imageBase64: base64 + "" }));
       setLoading(false);
     };
 
@@ -60,17 +59,17 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
   }, []);
 
   const handleSubmit = async () => {
-    saveObject("documents", formData);
+    await saveObject("documents", formData);
     const result: Doc[] = await loadObject("documents");
-    // router.replace('/index');
+    router.replace('/(tabs)/home');
   };
-  
+
   const handleDateConfirm = (date: Date) => {
     setFormData({ ...formData, expiryDate: moment(date).format('DD/MM/YYYY') });
     setDatePickerVisibility(false);
   };
 
-  const handleReminderSelect = (option: {label: string, value: string}) => {
+  const handleReminderSelect = (option: { label: string, value: string }) => {
     setFormData({ ...formData, reminder: option.value });
     setShowReminderModal(false);
   };
@@ -82,9 +81,19 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity onPress={() => router.replace('/(tabs)/home')} style={styles.closeButton}>
+        <Ionicons name="close" size={28} color="#374151" />
+      </TouchableOpacity>
+
       {loading && <ActivityIndicator size="large" color="#0000ff" />}
-      {formData.imageBase64 && !loading && (
-        <Image source={{ uri: `data:image/jpeg;base64,${formData.imageBase64}` }} style={{ width: 100, height: 100 }} />
+      {!loading && formData.imageBase64 && (
+        <View style={styles.imageFrame}>
+          <Image
+            source={{ uri: `data:image/jpeg;base64,${formData.imageBase64}` }}
+            style={styles.previewImage}
+            resizeMode="cover"
+          />
+        </View>
       )}
 
       <View style={styles.formGroup}>
@@ -94,15 +103,11 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
           placeholder="اسم المستند"
           value={formData.documentName}
           onChangeText={(text) => setFormData({ ...formData, documentName: text })}
-          textAlign="right"
         />
       </View>
 
       <View style={styles.formGroup}>
-        <View style={styles.labelContainer}>
-          <Text style={styles.label}>وصف المستند</Text>
-          <Ionicons name="information-circle-outline" size={20} color="#6B7280" />
-        </View>
+        <Text style={styles.label}>وصف المستند</Text>
         <TextInput
           style={[styles.input, styles.textArea, styles.rtlInput]}
           placeholder="الوصف"
@@ -111,32 +116,24 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
           textAlignVertical="top"
           value={formData.description}
           onChangeText={(text) => setFormData({ ...formData, description: text })}
-          textAlign="right"
         />
       </View>
 
       <View style={styles.formGroup}>
         <Text style={styles.label}>تاريخ الانتهاء</Text>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <TouchableOpacity 
-            style={styles.dropdownButton}
-            onPress={() => setShowReminderModal(true)} // Show the reminder modal
-          >
+        <View style={styles.dateRow}>
+          <TouchableOpacity style={styles.dropdownButton} onPress={() => setShowReminderModal(true)}>
             <Ionicons name="chevron-down" size={20} color="#6B7280" />
             <Text style={styles.dropdownButtonText}>{formData.reminder || 'تذكير قبل'}</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.dropdownButton}
-            onPress={() => setDatePickerVisibility(true)} // Show the date picker modal
-          >
+
+          <TouchableOpacity style={styles.dropdownButton} onPress={() => setDatePickerVisibility(true)}>
             <Ionicons name="chevron-down" size={20} color="#6B7280" />
             <Text style={styles.dropdownButtonText}>{formData.expiryDate || 'اختر التاريخ'}</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Date Picker Modal */}
       <DateTimePickerModal
         isVisible={isDatePickerVisible}
         mode="date"
@@ -157,9 +154,9 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
         <Text style={styles.submitButtonText}>إرسال</Text>
       </TouchableOpacity>
 
-    {/* reminder modal */}
-      <Modal visible={showReminderModal} transparent={true} animationType="slide" onRequestClose={() => setShowReminderModal(false)}>
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowReminderModal(false)}>
+      {/* Reminder Modal */}
+      <Modal visible={showReminderModal} transparent animationType="slide">
+        <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowReminderModal(false)}>
           <View style={styles.modalContent}>
             {reminderOptions.map((option) => (
               <TouchableOpacity key={option.value} style={styles.modalOption} onPress={() => handleReminderSelect(option)}>
@@ -170,9 +167,9 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
         </TouchableOpacity>
       </Modal>
 
-      {/* category modal */}
-      <Modal visible={showCategoryModal} transparent={true} animationType="slide" onRequestClose={() => setShowCategoryModal(false)}>
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowCategoryModal(false)}>
+      {/* Category Modal */}
+      <Modal visible={showCategoryModal} transparent animationType="slide">
+        <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowCategoryModal(false)}>
           <View style={styles.modalContent}>
             {categoryOptions.map((option) => (
               <TouchableOpacity key={option.value} style={styles.modalOption} onPress={() => handleCategorySelect(option)}>
@@ -189,21 +186,16 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    gap: 20
+    gap: 10,
+    flex: 1,
+    backgroundColor: '#FFFFFF'
+  },
+  closeButton: {
+    alignSelf: 'flex-end',
+    padding: 4,
   },
   formGroup: {
     gap: 8
-  },
-  formGroupRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12
-  },
-  labelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    justifyContent: 'flex-end'
   },
   label: {
     fontSize: 14,
@@ -213,68 +205,60 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    borderRadius: 8,
+    borderRadius: 10,
     padding: 12,
     fontSize: 16,
-    backgroundColor: 'white'
+    backgroundColor: '#F9FAFB',
   },
   rtlInput: {
     textAlign: 'right'
   },
   textArea: {
     height: 100,
-    textAlignVertical: 'top'
   },
-  dateContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    justifyContent: 'flex-end',
+  imageFrame: {
+    alignSelf: 'center',
+    borderWidth: 2,
+    borderColor: '#D1D5DB',
+    borderRadius: 12,
+    padding: 6,
+    backgroundColor: '#FFF',
+    marginBottom: 10,
   },
-  reminderContainer: {
-    flexDirection: 'row',
+  previewImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 8,
+  },
+  dateRow: {
+    flexDirection: 'row-reverse',
     gap: 12,
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
   },
   dropdownButton: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
-    justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: '#E5E7EB',
     borderRadius: 8,
     padding: 12,
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF',
     minWidth: 140,
   },
   dropdownButtonText: {
     fontSize: 16,
     color: '#6B7280',
-    marginRight: 8,
-  },
-  categoryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 8,
-    padding: 12,
-    backgroundColor: 'white'
-  },
-  categoryButtonText: {
-    fontSize: 16,
-    color: '#6B7280',
-    marginRight: 8
+    marginHorizontal: 8,
   },
   submitButton: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     backgroundColor: '#000000',
     borderRadius: 8,
     padding: 12,
-    marginTop: 8
+    marginTop: 12
   },
   submitButtonText: {
     fontSize: 16,
@@ -283,25 +267,24 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'flex-end'
   },
   modalContent: {
     backgroundColor: 'white',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
-    padding: 16,
-    maxHeight: '80%'
+    padding: 16
   },
   modalOption: {
-    paddingVertical: 12,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB'
   },
   modalOptionText: {
     fontSize: 16,
-    color: '#374151',
-    textAlign: 'right'
+    textAlign: 'right',
+    color: '#374151'
   }
 });
 
