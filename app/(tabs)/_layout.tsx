@@ -1,11 +1,9 @@
 import React from 'react';
 import {
-  Image,
-  Platform,
-  StyleSheet,
   View,
   Text,
-  TouchableOpacity,
+  StyleSheet,
+  Platform,
 } from 'react-native';
 import { Tabs } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -93,18 +91,16 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   iconWrapper: {
+    width: 60,
+    height: 60,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8,
-    height: 20,
-    width: 40,
   },
   label: {
     fontSize: 8,
     color: 'gray',
     textAlign: 'center',
-    lineHeight: 12,
-    marginTop: 1,
+    marginTop: 2,
   },
   focusedLabel: {
     color: 'black',

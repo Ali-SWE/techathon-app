@@ -105,6 +105,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
     justifyContent: 'center',
     alignItems: 'center',
+    left:10
+    
   },
   icon: {
     width: 22,
@@ -124,6 +126,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     elevation: 4,
     alignItems: 'center',
+    
   },
   option: {
     paddingVertical: 10,

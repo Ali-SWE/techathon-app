@@ -23,21 +23,19 @@ export default function Reminders() {
   const [documents, setDocuments] = useState<Doc[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  // ✅ Fetch documents only once on mount
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      setLoading(true);
-      const data = await loadObject("documents");
-      if (Array.isArray(data)) {
-        setDocuments(data);
-      }
-      setLoading(false);
-    };
+  const fetchDocuments = async () => {
+    setLoading(true);
+    const data = await loadObject("documents");
+    if (Array.isArray(data)) {
+      setDocuments(data);
+    }
+    setLoading(false);
+  };
 
+  useEffect(() => {
     fetchDocuments();
   }, []);
 
-  // ✅ Delete document handler
   const deleteDocument = async (id: string) => {
     Alert.alert("تأكيد الحذف", "هل تريد حذف هذا التذكير؟", [
       { text: "إلغاء", style: "cancel" },
@@ -46,14 +44,13 @@ export default function Reminders() {
         style: "destructive",
         onPress: async () => {
           const updated = documents.filter(doc => doc.id !== id);
-          await saveObject("documents", updated);
-          setDocuments(updated);
+          setDocuments(updated); // update UI instantly
+          await saveObject("documents", updated); // persist change
         },
       },
     ]);
   };
 
-  // ✅ Calculate status based on expiry date
   const getStatus = (expiryDate: string) => {
     const today = new Date();
     const expiry = new Date(expiryDate.split("/").reverse().join("-"));
@@ -63,12 +60,10 @@ export default function Reminders() {
     return 'valid';
   };
 
-  // ✅ Filtered results based on search
   const filteredReminders = documents.filter((item) =>
     item.documentName?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // ✅ Loading state
   if (loading) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -77,7 +72,6 @@ export default function Reminders() {
     );
   }
 
-  // ✅ Empty state
   if (documents.length === 0) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -90,7 +84,7 @@ export default function Reminders() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      {/* ✅ Search Header */}
+      {/* Search Header */}
       <View style={styles.header}>
         {isSearchVisible ? (
           <View style={styles.searchContainer}>
@@ -121,10 +115,10 @@ export default function Reminders() {
         )}
       </View>
 
-      {/* ✅ Divider */}
+      {/* Divider */}
       <View style={styles.divider} />
 
-      {/* ✅ List of reminders */}
+      {/* List of reminders */}
       <FlatList
         data={filteredReminders}
         keyExtractor={(item) => item.id}
