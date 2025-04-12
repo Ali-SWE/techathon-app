@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   TextInput,
@@ -8,61 +8,89 @@ import {
   Text,
   SafeAreaView,
   StatusBar,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { DocComponent } from '@/components/DocComponent';
 import { Doc } from '@/utils/types';
 import { categories } from '@/utils/constant';
+import { loadObject, saveObject } from '@/utils/storage';
 
 export default function Reminders() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [documents, setDocuments] = useState<Doc[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const reminders: Doc[] = [
-    {
-      id: '1',
-      name: 'رخصة القيادة',
-      description: 'ستنتهي قريباً',
-      category: 'cards',
-      expiryDate: '21/05/2025',
-      documentName: '',
-      imageBase64: '',
-      size: '',
-      mimeType: ''
-    },
-    {
-      id: '2',
-      name: 'تأمين السيارة',
-      description: 'انتهت صلاحيتها',
-      category: 'shopping',
-      expiryDate: '01/01/2024',
-      documentName: '',
-      imageBase64: '',
-      size: '',
-      mimeType: ''
-    },
-    {
-      id: '3',
-      name: 'بطاقة الجامعة',
-      description: 'سارية',
-      category: 'wallet',
-      expiryDate: '30/04/2026',
-      documentName: '',
-      imageBase64: '',
-      size: '',
-      mimeType: ''
-    },
-  ];
+  // ✅ Fetch documents only once on mount
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      setLoading(true);
+      const data = await loadObject("documents");
+      if (Array.isArray(data)) {
+        setDocuments(data);
+      }
+      setLoading(false);
+    };
 
-  const filteredReminders = reminders.filter((item) =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+    fetchDocuments();
+  }, []);
+
+  // ✅ Delete document handler
+  const deleteDocument = async (id: string) => {
+    Alert.alert("تأكيد الحذف", "هل تريد حذف هذا التذكير؟", [
+      { text: "إلغاء", style: "cancel" },
+      {
+        text: "حذف",
+        style: "destructive",
+        onPress: async () => {
+          const updated = documents.filter(doc => doc.id !== id);
+          await saveObject("documents", updated);
+          setDocuments(updated);
+        },
+      },
+    ]);
+  };
+
+  // ✅ Calculate status based on expiry date
+  const getStatus = (expiryDate: string) => {
+    const today = new Date();
+    const expiry = new Date(expiryDate.split("/").reverse().join("-"));
+    const diffDays = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 3600 * 24));
+    if (diffDays < 0) return 'expired';
+    if (diffDays <= 7) return 'soon';
+    return 'valid';
+  };
+
+  // ✅ Filtered results based on search
+  const filteredReminders = documents.filter((item) =>
+    item.documentName?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // ✅ Loading state
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#3B82F6" />
+      </View>
+    );
+  }
+
+  // ✅ Empty state
+  if (documents.length === 0) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={styles.title}>ما فيه شي ع البال :(</Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      {/* Search Header */}
+      {/* ✅ Search Header */}
       <View style={styles.header}>
         {isSearchVisible ? (
           <View style={styles.searchContainer}>
@@ -93,27 +121,23 @@ export default function Reminders() {
         )}
       </View>
 
-      {/* Divider */}
+      {/* ✅ Divider */}
       <View style={styles.divider} />
 
-      {/* List of reminders */}
+      {/* ✅ List of reminders */}
       <FlatList
         data={filteredReminders}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <DocComponent
             id={item.id}
-            name={item.name}
+            name={item.documentName}
             description={item.description}
             expiryDate={item.expiryDate}
             iconPath={categories[item.category]}
-            status={
-              item.expiryDate === '01/01/2024'
-                ? 'expired'
-                : item.expiryDate === '21/05/2025'
-                ? 'soon'
-                : 'valid'
-            }
+            status={getStatus(item.expiryDate)}
+            imageBase64={item.imageBase64}
+            onDelete={() => deleteDocument(item.id)}
           />
         )}
         contentContainerStyle={styles.content}
@@ -147,9 +171,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#374151',
   },
-  closeSearchButton: {
-    padding: 4,
-  },
   searchIcon: {
     padding: 6,
   },
@@ -161,5 +182,11 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
+  },
+  title: {
+    fontWeight: '600',
+    fontSize: 16,
+    textAlign: 'right',
+    color: '#6B7280',
   },
 });

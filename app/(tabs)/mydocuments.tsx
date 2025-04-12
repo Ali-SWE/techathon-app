@@ -8,13 +8,15 @@ import {
   FlatList,
   TextInput,
   TouchableOpacity,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { DocComponent } from '@/components/DocComponent';
 import { Doc } from '@/utils/types';
 import { categories } from '@/utils/constant';
-import { loadObject, bytesToMB } from '@/utils/storage';
+import { loadObject, saveObject, bytesToMB } from '@/utils/storage';
 
 export default function MyDocumentsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,15 +29,40 @@ export default function MyDocumentsScreen() {
     const fetchDocuments = async () => {
       setLoading(true);
       const data = await loadObject('documents');
-      setDocuments(data);
+      if (Array.isArray(data)) {
+        setDocuments(data);
+      }
       setLoading(false);
     };
     fetchDocuments();
-  }, [documents]);
+  }, []); // ✅ fetch only once on mount
+
+  const deleteDocument = async (id: string) => {
+    Alert.alert("تأكيد الحذف", "هل تريد حذف هذا الملف؟", [
+      { text: "إلغاء", style: "cancel" },
+      {
+        text: "حذف",
+        style: "destructive",
+        onPress: async () => {
+          const updated = documents.filter(doc => doc.id !== id);
+          await saveObject('documents', updated);
+          setDocuments(updated);
+        },
+      },
+    ]);
+  };
 
   const filteredDocs = documents.filter(doc =>
-    doc.documentName.toLowerCase().includes(searchQuery.toLowerCase())
+    doc.documentName?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#3B82F6" />
+      </View>
+    );
+  }
 
   if (documents.length === 0) {
     return (
@@ -96,6 +123,7 @@ export default function MyDocumentsScreen() {
             size={bytesToMB(item.size) + ' MB'}
             imageBase64={item.imageBase64}
             mimeType={item.mimeType}
+            onDelete={() => deleteDocument(item.id)}
           />
         )}
         contentContainerStyle={styles.content}
@@ -132,9 +160,6 @@ const styles = StyleSheet.create({
   searchIcon: {
     padding: 6,
   },
-  closeSearchButton: {
-    padding: 4,
-  },
   divider: {
     height: 1,
     backgroundColor: '#E5E7EB',
@@ -148,5 +173,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
     textAlign: 'right',
+    color: '#6B7280',
   },
 });
