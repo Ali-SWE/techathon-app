@@ -111,6 +111,8 @@ export default function MyDocumentsScreen() {
             description={item.description}
             iconPath={categories[item.category]}
             size={bytesToMB(item.size) + " MB"}
+            imageBase64={item.imageBase64}
+            mimeType={item.mimeType}
           />
         )}
         contentContainerStyle={styles.content}

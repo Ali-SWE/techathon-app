@@ -1,7 +1,9 @@
 import { useActionSheet } from '@expo/react-native-action-sheet';
+import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { deleteObject } from '@/utils/storage';
+import ImagePreviewModal from './ImageModal';
 
 type Status = 'expired' | 'soon' | 'valid';
 
@@ -13,9 +15,11 @@ type Props = {
   iconPath: any;
   status?: Status;
   size?: string;
+  imageBase64?: string
+  mimeType?: string
 };
 
-export function DocComponent({ id, name, description, expiryDate, iconPath, status, size }: Props) {
+export function DocComponent({ id, name, description, expiryDate, iconPath, status, size, imageBase64, mimeType }: Props) {
   const { showActionSheetWithOptions } = useActionSheet();
 
   const getStatusStyle = (status?: Status) => {
@@ -46,6 +50,8 @@ export function DocComponent({ id, name, description, expiryDate, iconPath, stat
     }
   };
 
+  const [showImageModal, setShowImageModal] = useState(false);
+
   const handleDelete = async (id: string) => {
     await deleteObject("documents",id)
   }
@@ -65,7 +71,7 @@ export function DocComponent({ id, name, description, expiryDate, iconPath, stat
       (selectedIndex) => {
         switch (selectedIndex) {
           case 0:
-            console.log('فتح');
+            setShowImageModal(true)
             break;
           case 1:
             console.log('مشاركة');
@@ -116,6 +122,12 @@ export function DocComponent({ id, name, description, expiryDate, iconPath, stat
           )}
         </View>
       </View>
+      <ImagePreviewModal
+        visible={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        base64 = {imageBase64+""}
+        mimeType= {mimeType + ""}
+      />
     </View>
   );
 }

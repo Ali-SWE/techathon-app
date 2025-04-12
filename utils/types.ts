@@ -6,4 +6,5 @@ export type Doc = {
     expiryDate: string // should type be date?
     imageBase64: string
     size: string
+    mimeType: string
 }

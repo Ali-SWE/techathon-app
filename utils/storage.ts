@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 import { Doc } from './types';
+import * as Sharing from 'expo-sharing';
 
 // Save an object
 export const saveObject = async (key: string, value: Doc) => {
@@ -80,4 +81,23 @@ export const bytesToMB = (byteString: string): string => {
   return  mb;
 }
 
+export const saveBase64ToFile = async (base64: string, mimeType: string): Promise<string> => {
+  let extension = mimeType? mimeType.split('/')[1]: "jpg"; // 'jpeg', 'png', 'pdf', etc.
+  
+  const fileUri = `${FileSystem.cacheDirectory}your-document.${extension}`;
+
+  await FileSystem.writeAsStringAsync(fileUri, base64, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
+
+  return fileUri;
+};
+
+export const shareFile = async (fileUri: string) => {
+  if (await Sharing.isAvailableAsync()) {
+    await Sharing.shareAsync(fileUri);
+  } else {
+    alert('المشاركة غير مدعومة على هذا الجهاز');
+  }
+};
 

@@ -19,7 +19,8 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
     reminder: '',
     category: '',
     imageBase64: '',
-    size: size + ""
+    size: size + "",
+    mimeType: mimeType ? mimeType + "" : ''
   });
 
   const [showReminderModal, setShowReminderModal] = useState(false);
