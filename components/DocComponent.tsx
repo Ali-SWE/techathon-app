@@ -33,7 +33,7 @@ export function DocComponent({ id, name, description, expiryDate, iconPath, stat
         };
       case 'soon':
         return {
-          label: 'سينتهي قريبًا',
+          label: 'قريبًا',
           icon: 'calendar-clock',
           color: '#f4a261',
           bg: '#fff4e5',

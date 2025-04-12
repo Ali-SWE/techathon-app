@@ -1,4 +1,5 @@
 export type Doc = {
+    name: any
     id: string
     documentName: string
     description: string

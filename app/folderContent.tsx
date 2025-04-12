@@ -13,44 +13,45 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { DocComponent } from '@/components/DocComponent';
 import { Doc } from '@/utils/types';
-import { categories } from '@/utils/constant';
 
 export default function FolderScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-  
-  // Mock data for folder contents
+
   const [documents, setDocuments] = useState<Doc[]>([
-    { 
-      id: '1', 
-      documentName: 'فاتورة الكهرباء', 
+    {
+      id: '1',
+      documentName: 'فاتورة الكهرباء',
       description: '',
       category: 'documents',
       expiryDate: '',
       imageBase64: '',
-      size: '2.5 MB'
+      size: '2.5 MB',
+      mimeType: '',
+      name: undefined
     },
-    { 
-      id: '2', 
-      documentName: 'عقد الإيجار', 
+    {
+      id: '2',
+      documentName: 'عقد الإيجار',
       description: '',
       category: 'documents',
       expiryDate: '',
       imageBase64: '',
-      size: '1.8 MB'
+      size: '1.8 MB',
+      mimeType: '',
+      name: undefined
     },
   ]);
 
-  const filteredDocuments = documents.filter(doc => 
+  const filteredDocuments = documents.filter(doc =>
     doc.documentName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const folder = {
     id: 1,
     title: 'اغراض المنزل',
-    date: 'April 19, 2025',
     filesCount: 10,
     color: 'orange' as const,
   };
@@ -58,12 +59,39 @@ export default function FolderScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      
+
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/(tabs)/home')}>
-          <Ionicons name="arrow-back" size={24} color="#374151" />
+        <TouchableOpacity onPress={() => router.push("/(tabs)/home")}>
+          <Ionicons name="arrow-forward" size={24} color="#374151" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{folder.title}</Text>
+
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>{folder.title}</Text>
+        </View>
+
+        <View style={{ width: 24 }} />
+      </View>
+
+      {/* Folder info */}
+      <View style={styles.folderInfo}>
+        <View style={[
+          styles.iconContainer,
+          { backgroundColor: folder.color === 'orange' ? '#FFF7ED' : '#EEF6FF' }
+        ]}>
+          <Ionicons
+            name="folder-outline"
+            size={24}
+            color={folder.color === 'orange' ? '#FB923C' : '#60A5FA'}
+          />
+        </View>
+        <Text style={styles.folderMeta}>
+          {folder.filesCount} <Text>ملفات</Text>
+        </Text>
+      </View>
+
+      {/* Search */}
+      <View style={{ paddingHorizontal: 16 }}>
         {isSearchVisible ? (
           <View style={styles.searchContainer}>
             <TextInput
@@ -74,7 +102,7 @@ export default function FolderScreen() {
               onChangeText={setSearchQuery}
               textAlign="right"
             />
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.closeSearchButton}
               onPress={() => {
                 setIsSearchVisible(false);
@@ -85,25 +113,16 @@ export default function FolderScreen() {
             </TouchableOpacity>
           </View>
         ) : (
-          <TouchableOpacity 
-            style={styles.searchIcon}
+          <TouchableOpacity
+            style={[styles.searchIcon, { alignSelf: 'flex-end', marginBottom: 8 }]}
             onPress={() => setIsSearchVisible(true)}
           >
-            <Ionicons name="search" size={24} color="#374151" />
+            <Ionicons name="search-outline" size={24} color="#374151" />
           </TouchableOpacity>
         )}
       </View>
-      <View style={styles.folderInfo}>
-        <View style={[styles.iconContainer, { backgroundColor: folder.color === 'orange' ? '#FFF7ED' : '#EEF6FF' }]}>
-          <Ionicons 
-            name="folder-outline" 
-            size={24} 
-            color={folder.color === 'orange' ? '#FB923C' : '#60A5FA'}
-          />
-        </View>
-        <Text style={styles.folderMeta}>{folder.date} · {folder.filesCount} ملفات</Text>
-      </View>
 
+      {/* Document list */}
       <FlatList
         data={filteredDocuments}
         renderItem={({ item }) => (
@@ -128,25 +147,28 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row-reverse',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
+  },
+  headerTitleContainer: {
+    flex: 1,
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: '#111827',
+    textAlign: 'center',
   },
   searchContainer: {
-    flex: 1,
     flexDirection: 'row-reverse',
     alignItems: 'center',
     backgroundColor: '#c2c3c4',
     borderRadius: 8,
     paddingHorizontal: 12,
-    marginRight: 16,
   },
   searchInput: {
     flex: 1,
@@ -177,4 +199,4 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
   },
-}); 
+});

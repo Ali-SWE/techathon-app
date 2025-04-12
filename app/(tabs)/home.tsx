@@ -18,26 +18,12 @@ import { loadObject, bytesToMB } from '@/utils/storage';
 import { Doc } from '@/utils/types';
 import { categories } from '@/utils/constant';
 
-// const recentDocs = [
-//   {
-//     id: 'r1',
-//     name: 'فاتورة الماء',
-//     size: '450 KB',
-//     iconPath: require('@/assets/icon_wallet.png'),
-//   },
-//   {
-//     id: 'r2',
-//     name: 'تقرير المدرسة',
-//     size: '1.2 MB',
-//     iconPath: require('@/assets/icon_cards.png'),
-//   },
-// ];
-
-const folders: Array<{ id: number; title: string; date: string; filesCount: number; color: 'orange' | 'blue' }> = [
-  { id: 1, title: 'اغراض المنزل', date: 'April 19, 2025', filesCount: 10, color: 'orange' },
-  { id: 2, title: 'الكترونيات', date: 'April 19, 2025', filesCount: 10, color: 'blue' },
-  { id: 3, title: 'ملابس', date: 'April 19, 2025', filesCount: 8, color: 'orange' },
-  { id: 4, title: 'اثاث', date: 'April 19, 2025', filesCount: 12, color: 'blue' }
+// Folder list without date field
+const folders: Array<{ id: number; title: string; filesCount: number; color: 'orange' | 'blue' }> = [
+  { id: 1, title: 'اغراض المنزل', filesCount: 10, color: 'orange' },
+  { id: 2, title: 'الكترونيات', filesCount: 10, color: 'blue' },
+  { id: 3, title: 'ملابس',  filesCount: 8, color: 'orange' },
+  { id: 4, title: 'اثاث', filesCount: 12, color: 'blue' }
 ];
 
 export default function HomeScreen() {
@@ -45,6 +31,8 @@ export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const router = useRouter();
+  const [documents, setDocuments] = useState<Doc[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const prepare = async () => {
@@ -53,32 +41,30 @@ export default function HomeScreen() {
     };
     prepare();
   }, []);
-    const [documents, setDocuments] = useState<Doc[]>([])
-    const [loading, setLoading] = useState<boolean>(false);
-    
-    useEffect(() => {
-        const fetchDocuments = async () => {
-          setLoading(true); // Start loading state
-          const data = await loadObject("documents")
-          setDocuments(data); 
-          setLoading(false); // End loading state
-        };
-        fetchDocuments();
-      }, [documents]);
-      
-      if(documents.length == 0){
-        return (
-          <View style={[styles.container, { marginTop: 10, alignItems: 'center' }]}>
-            <Text style={styles.title}>{"ما فيه شي ع البال:("}</Text>
-        </View>
-        )
-      }
 
-  const filteredDocs = documents.filter(doc => 
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      setLoading(true);
+      const data = await loadObject("documents");
+      setDocuments(data);
+      setLoading(false);
+    };
+    fetchDocuments();
+  }, [documents]);
+
+  if (documents.length === 0) {
+    return (
+      <View style={[styles.container, { marginTop: 10, alignItems: 'center' }]}>
+        <Text style={styles.title}>ما فيه شي ع البال :(</Text>
+      </View>
+    );
+  }
+
+  const filteredDocs = documents.filter(doc =>
     doc.documentName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredFolders = folders.filter(folder => 
+  const filteredFolders = folders.filter(folder =>
     folder.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -92,6 +78,36 @@ export default function HomeScreen() {
         ListHeaderComponent={
           <>
             <View style={styles.header}>
+              {isSearchVisible ? (
+                <View style={styles.searchContainer}>
+                  <TouchableOpacity
+                    style={styles.searchIcon}
+                    onPress={() => {
+                      setIsSearchVisible(false);
+                      setSearchQuery('');
+                    }}
+                  >
+                    <Ionicons name="close" size={24} color="#374151" />
+                  </TouchableOpacity>
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder="ابحث عن ملف أو مجلد..."
+                    placeholderTextColor={'white'}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    textAlign="right"
+                  />
+                  <Ionicons name="search" size={24} color="#374151" style={{ marginStart: 6 }} />
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={styles.searchIcon}
+                  onPress={() => setIsSearchVisible(true)}
+                >
+                  <Ionicons name="search" size={24} color="#374151" />
+                </TouchableOpacity>
+              )}
+
               <View style={styles.viewToggle}>
                 <TouchableOpacity
                   style={[styles.viewToggleButton, !isGridView && styles.viewToggleButtonActive]}
@@ -106,41 +122,11 @@ export default function HomeScreen() {
                   <Ionicons name="grid" size={20} color={isGridView ? '#3B82F6' : '#9CA3AF'} />
                 </TouchableOpacity>
               </View>
-
-              {isSearchVisible ? (
-                <View style={styles.searchContainer}>
-                  <TextInput
-                    style={styles.searchInput}
-                    placeholder="ابحث عن ملف أو مجلد..."
-                    placeholderTextColor={'white'}
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    textAlign="right"
-                  />
-                  <TouchableOpacity 
-                    style={styles.closeSearchButton}
-                    onPress={() => {
-                      setIsSearchVisible(false);
-                      setSearchQuery('');
-                    }}
-                  >
-                    <Ionicons name="close" size={24} color="#374151" />
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <TouchableOpacity 
-                  style={styles.searchIcon}
-                  onPress={() => setIsSearchVisible(true)}
-                >
-                  <Ionicons name="search" size={24} color="#374151" />
-                </TouchableOpacity>
-              )}
             </View>
 
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}> المجلدات</Text>
-
+                <Text style={styles.sectionTitle}>المجلدات</Text>
                 <TouchableOpacity onPress={() => router.push('/myFolders')}>
                   <Text style={styles.showAllText}>اظهار الكل</Text>
                 </TouchableOpacity>
@@ -150,8 +136,7 @@ export default function HomeScreen() {
 
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>آخر الملفات</Text>
-
+                <Text style={styles.sectionTitle}>آخر الملفات</Text>
                 <TouchableOpacity onPress={() => router.push('/mydocuments')}>
                   <Text style={styles.showAllText}>اظهار الكل</Text>
                 </TouchableOpacity>
@@ -204,7 +189,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#c2c3c4',
     borderRadius: 8,
     paddingHorizontal: 12,
-    marginRight: 16,
+    gap: 8,
   },
   searchInput: {
     flex: 1,

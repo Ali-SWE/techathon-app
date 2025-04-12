@@ -88,6 +88,7 @@ const Form = ({ uri, mimeType, size }: {uri: string | string[], mimeType: string
       )}
 
       <View style={styles.formGroup}>
+        <Text style={styles.label}>اسم المستند</Text>
         <TextInput
           style={[styles.input, styles.rtlInput]}
           placeholder="اسم المستند"

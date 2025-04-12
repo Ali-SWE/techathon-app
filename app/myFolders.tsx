@@ -13,12 +13,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import FoldersSection from '@/components/Folder';
 
 interface Folder {
   id: number;
   title: string;
-  date: string;
   filesCount: number;
   color: 'orange' | 'blue';
 }
@@ -28,16 +26,16 @@ export default function MyFoldersScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [folders, setFolders] = useState<Folder[]>([
-    { id: 1, title: 'اغراض المنزل', date: 'April 19, 2025', filesCount: 10, color: 'orange' },
-    { id: 2, title: 'الكترونيات', date: 'April 19, 2025', filesCount: 10, color: 'blue' },
-    { id: 3, title: 'ملابس', date: 'April 19, 2025', filesCount: 8, color: 'orange' },
-    { id: 4, title: 'اثاث', date: 'April 19, 2025', filesCount: 12, color: 'blue' }
+    { id: 1, title: 'اغراض المنزل', filesCount: 10, color: 'orange' },
+    { id: 2, title: 'الكترونيات', filesCount: 10, color: 'blue' },
+    { id: 3, title: 'ملابس', filesCount: 8, color: 'orange' },
+    { id: 4, title: 'اثاث', filesCount: 12, color: 'blue' }
   ]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
 
-  const filteredFolders = folders.filter(folder => 
+  const filteredFolders = folders.filter(folder =>
     folder.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -46,7 +44,6 @@ export default function MyFoldersScreen() {
       const newFolder: Folder = {
         id: Date.now(),
         title: newFolderName,
-        date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
         filesCount: 0,
         color: Math.random() > 0.5 ? 'orange' : 'blue'
       };
@@ -79,8 +76,8 @@ export default function MyFoldersScreen() {
 
   const handleUpdateFolder = () => {
     if (editingFolder && newFolderName.trim()) {
-      setFolders(folders.map(f => 
-        f.id === editingFolder.id 
+      setFolders(folders.map(f =>
+        f.id === editingFolder.id
           ? { ...f, title: newFolderName }
           : f
       ));
@@ -93,7 +90,6 @@ export default function MyFoldersScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#374151" />
@@ -109,7 +105,7 @@ export default function MyFoldersScreen() {
               onChangeText={setSearchQuery}
               textAlign="right"
             />
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.closeSearchButton}
               onPress={() => {
                 setIsSearchVisible(false);
@@ -121,13 +117,13 @@ export default function MyFoldersScreen() {
           </View>
         ) : (
           <View style={styles.headerRight}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.searchIcon}
               onPress={() => setIsSearchVisible(true)}
             >
               <Ionicons name="search" size={24} color="#374151" />
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.addButton}
               onPress={() => {
                 setEditingFolder(null);
@@ -144,12 +140,9 @@ export default function MyFoldersScreen() {
       <FlatList
         data={filteredFolders}
         renderItem={({ item }) => (
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.folderCard, { backgroundColor: item.color === 'blue' ? '#EEF6FF' : '#FFF7ED' }]}
-            onPress={() => router.push({
-              pathname: "/folderContent",
-              params: { id: item.id }
-            })}
+            onPress={() => router.push({ pathname: "/folderContent", params: { id: item.id } })}
           >
             <View style={styles.folderContent}>
               <View style={styles.folderInfo}>
@@ -158,10 +151,10 @@ export default function MyFoldersScreen() {
                 </View>
                 <View>
                   <Text style={styles.folderTitle}>{item.title}</Text>
-                  <Text style={styles.folderMeta}>{item.date} · {item.filesCount} ملفات</Text>
+                  <Text style={styles.folderMeta}>{item.filesCount} ملفات</Text>
                 </View>
               </View>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.menuButton}
                 onPress={(e) => {
                   e.stopPropagation();
@@ -176,9 +169,7 @@ export default function MyFoldersScreen() {
                   );
                 }}
               >
-                <View style={styles.menuDot} />
-                <View style={styles.menuDot} />
-                <View style={styles.menuDot} />
+                <Ionicons name="ellipsis-vertical" size={20} color="#9CA3AF" />
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
@@ -206,7 +197,7 @@ export default function MyFoldersScreen() {
               textAlign="right"
             />
             <View style={styles.modalButtons}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
                 onPress={() => {
                   setIsModalVisible(false);
@@ -216,7 +207,7 @@ export default function MyFoldersScreen() {
               >
                 <Text style={styles.cancelButtonText}>إلغاء</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.modalButton, styles.confirmButton]}
                 onPress={editingFolder ? handleUpdateFolder : handleAddFolder}
               >
@@ -233,10 +224,7 @@ export default function MyFoldersScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
-  },
+  container: { flex: 1, backgroundColor: '#F9FAFB' },
   header: {
     flexDirection: 'row-reverse',
     justifyContent: 'space-between',
@@ -245,15 +233,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  headerRight: {
-    flexDirection: 'row-reverse',
-    gap: 16,
-  },
+  headerTitle: { fontSize: 18, fontWeight: '600', color: '#111827' },
+  headerRight: { flexDirection: 'row-reverse', gap: 16 },
   searchContainer: {
     flex: 1,
     flexDirection: 'row-reverse',
@@ -263,32 +244,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginRight: 16,
   },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    fontSize: 16,
-    color: '#374151',
-  },
-  closeSearchButton: {
-    padding: 4,
-  },
-  searchIcon: {
-    padding: 6,
-  },
-  addButton: {
-    padding: 6,
-  },
-  content: {
-    padding: 16,
-  },
+  searchInput: { flex: 1, height: 40, fontSize: 16, color: '#374151' },
+  closeSearchButton: { padding: 4 },
+  searchIcon: { padding: 6 },
+  addButton: { padding: 6 },
+  content: { padding: 16 },
   folderCard: {
     borderRadius: 12,
     marginBottom: 16,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
     elevation: 1,
   },
   folderContent: {
@@ -296,90 +260,34 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  folderInfo: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    gap: 12,
-  },
-  iconContainer: {
-    padding: 12,
-    borderRadius: 12,
-  },
-  folderTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#111827',
-  },
-  folderMeta: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 4,
-  },
-  menuButton: {
-    padding: 4,
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 20,
-    gap: 3
-  },
-  menuDot: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
-    backgroundColor: '#9CA3AF'
-  },
+  folderInfo: { flexDirection: 'row-reverse', alignItems: 'center', gap: 12 },
+  iconContainer: { padding: 12, borderRadius: 12 },
+  folderTitle: { fontSize: 16, fontWeight: '500', color: '#111827' },
+  folderMeta: { fontSize: 14, color: '#6B7280', marginTop: 4 },
+  menuButton: { padding: 4 },
   modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center', alignItems: 'center'
   },
   modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 24,
-    width: '90%',
+    backgroundColor: 'white', borderRadius: 16, padding: 24, width: '90%'
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-    textAlign: 'right',
-    marginBottom: 16,
+    fontSize: 18, fontWeight: '600', color: '#111827',
+    textAlign: 'right', marginBottom: 16
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 16,
+    borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8,
+    padding: 12, fontSize: 16, marginBottom: 16
   },
   modalButtons: {
     flexDirection: 'row-reverse',
     justifyContent: 'flex-end',
     gap: 12,
   },
-  modalButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-  },
-  cancelButton: {
-    backgroundColor: '#F3F4F6',
-  },
-  confirmButton: {
-    backgroundColor: '#3B82F6',
-  },
-  cancelButtonText: {
-    color: '#374151',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  confirmButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-}); 
+  modalButton: { paddingVertical: 12, paddingHorizontal: 24, borderRadius: 8 },
+  cancelButton: { backgroundColor: '#F3F4F6' },
+  confirmButton: { backgroundColor: '#3B82F6' },
+  cancelButtonText: { color: '#374151', fontSize: 16, fontWeight: '500' },
+  confirmButtonText: { color: 'white', fontSize: 16, fontWeight: '500' },
+});
